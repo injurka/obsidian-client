@@ -356,6 +356,7 @@ onMounted(async () => {
     margin-top: 0.9rem;
     margin-bottom: 1.15rem;
     padding: 0.5rem;
+    text-align: center;
   }
 
   h4,
