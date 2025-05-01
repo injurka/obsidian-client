@@ -9,6 +9,31 @@ export default defineNuxtConfig({
     ],
   },
 
+  nitro: {
+    esbuild: {
+      options: {
+        target: 'esnext',
+      },
+    },
+  },
+
+  features: {
+    inlineStyles: false,
+  },
+
+  vuetify: {
+    moduleOptions: {
+      /* other module options */
+      // styles: { configFile: '/settings.scss' },
+    },
+    vuetifyOptions: {
+      /* vuetify options */
+      icons: {
+        defaultSet: 'mdi',
+      },
+    },
+  },
+
   hooks: {
     async "prerender:routes"(ctx) {
       // TODO
@@ -18,11 +43,10 @@ export default defineNuxtConfig({
       const vaults = [{ sysname: 'Travel' }]
 
       for await (const vault of vaults) {
-        const nav = await fetch(`https://api.kvakushnik.ru/static/wander-mark/content/${vault.sysname}/nav.json`).then(
+        const nav = await fetch(`${process.env.NUXT_PUBLIC_STATIC_BASE_URL}/content/${vault.sysname}/nav.json`).then(
           (res) => res.json(),
         );
         const links = generateFilePaths(nav, `/${vault.sysname}`);
-        console.log('links', links);
 
         for (const page of links) {
           ctx.routes.add(page);
@@ -37,13 +61,6 @@ export default defineNuxtConfig({
     //
   },
 
-  nitro: {
-    esbuild: {
-      options: {
-        target: 'esnext',
-      },
-    },
-  },
 
   devServer: {
     port: 5173,

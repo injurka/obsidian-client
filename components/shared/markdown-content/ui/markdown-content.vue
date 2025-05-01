@@ -289,7 +289,6 @@ onMounted(async () => {
     border-collapse: collapse;
     margin: 1.5em 0;
     font-size: 1em;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--fg-primary-color);
     line-height: 1.6;
   }

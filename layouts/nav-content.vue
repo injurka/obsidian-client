@@ -33,6 +33,10 @@ watch(
   () => params.value.vault,
   () => navRefresh(),
 )
+
+onMounted(()=> {
+  menu.value = true
+})
 </script>
 
 <template>
