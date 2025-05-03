@@ -11,6 +11,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    '/': { prerender: true },
     '/manifest.webmanifest': {
       headers: {
         'Content-Type': 'application/manifest+json',

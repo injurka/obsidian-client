@@ -1,18 +1,27 @@
 /// <reference lib="WebWorker" />
 /// <reference types="vite/client" />
+/// <reference types="@types/workbox-sw" />
 
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 import { clientsClaim } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
 
 declare let self: ServiceWorkerGlobalScope
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING')
     self.skipWaiting()
+})
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(workbox.core.cacheNames.precache).then((cache) => {
+      return cache.add('/')
+    }),
+  )
 })
 
 const entries = self.__WB_MANIFEST
@@ -32,20 +41,21 @@ let denylist: undefined | RegExp[]
 if (import.meta.env.PROD) {
   denylist = [
     /^\/api\//,
-    /^\/sign-in\//,
-    /^\/sign-up\//,
-    /^\/oauth\//,
-    /^\/web-share-target\//,
     /^\/sw.js$/,
     /^\/manifest-(.*).webmanifest$/,
   ]
+
+  registerRoute(
+    /^\/api\//,
+    new NetworkOnly(),
+  )
 }
 
 if (import.meta.env.PROD) {
   registerRoute(
     ({ request, sameOrigin }) => sameOrigin && request.destination === 'manifest',
     new NetworkFirst({
-      cacheName: 'chinisik-webmanifest',
+      cacheName: 'wander-mark-webmanifest',
       plugins: [
         new CacheableResponsePlugin({ statuses: [200] }),
         new ExpirationPlugin({ maxEntries: 100 }),
