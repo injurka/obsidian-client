@@ -135,8 +135,18 @@ const breadcrumbItems = computed<VBreadcrumbsItems>(() => {
 .content-breadcrumbs {
   padding: 8px 0;
   flex-grow: 1;
+  overflow: hidden;
+
   :deep(.v-breadcrumbs-item) {
     font-size: 0.8rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  :deep(.v-breadcrumbs-item--link) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 

@@ -13,7 +13,6 @@ import { createHighlighter } from 'shiki'
 import { markdownItWikiImages } from './markdownIt-wiki-images'
 import { markdownItWikiLinks } from './markdownIt-wiki-links'
 
-
 interface CreateMarkdownRendererParams {
   imageBasePath: string
   shikiTheme: string
@@ -24,7 +23,7 @@ export async function createMarkdownRenderer(params: CreateMarkdownRendererParam
 
   const highlighter: Highlighter = await createHighlighter({
     themes: [catppuccinMocha, catppuccinMacchiato, catppuccinFrappe, catppuccinLatte],
-    langs: ['c++', 'javascript', 'typescript', 'html', 'css', 'scss', 'json', 'bash', 'python', 'vue', 'markdown', 'go', 'rust'],
+    langs: ['c++', 'ql', 'javascript', 'typescript', 'html', 'css', 'scss', 'json', 'bash', 'python', 'vue', 'markdown', 'go', 'rust'],
   })
 
   const md = new MarkdownIt({
@@ -35,7 +34,7 @@ export async function createMarkdownRenderer(params: CreateMarkdownRendererParam
     highlight: (str: string, lang: string, _attrs: string): string => {
       if (lang && highlighter.getLoadedLanguages().includes(lang)) {
         try {
-          return highlighter.codeToHtml(str, { lang, theme: shikiTheme })
+          return highlighter.codeToHtml(str, { lang: 'c++', theme: shikiTheme })
         }
         catch (error) {
           console.error(`Shiki highlighting error for lang ${lang}:`, error)
@@ -45,7 +44,6 @@ export async function createMarkdownRenderer(params: CreateMarkdownRendererParam
       return `<pre class="shiki-fallback"><code>${md.utils.escapeHtml(str)}</code></pre>`
     },
   })
-
 
   md
     .use(markdownItWikiImages, {

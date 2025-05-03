@@ -55,8 +55,8 @@ watch(
   () => theme.value,
   async () => {
     mdInstance.value = await createMarkdownRenderer({
-      imageBasePath: props.imageBasePath, 
-      shikiTheme: getShikiTheme() 
+      imageBasePath: props.imageBasePath,
+      shikiTheme: getShikiTheme(),
     })
   },
 )
@@ -150,7 +150,6 @@ onMounted(async () => {
     display: flex;
     margin: 10px 0;
     position: relative;
-    background-color: var(--bg-secondary-color);
     padding-left: 4px;
     word-wrap: break-word;
     white-space: break-spaces;
@@ -166,14 +165,19 @@ onMounted(async () => {
     overflow-x: auto;
   }
   .shiki-fallback {
-    background: var(--bg-tertiary-color);
+    border: 2px solid var(--border-primary-color);
     color: var(--fg-secondary-color);
+    box-shadow: inset 0 0 10px var(--border-secondary-color);
     padding: 1em;
     border-radius: 4px;
     overflow-x: auto;
     font-family: Roboto, 'Andale Mono', 'Ubuntu Mono', monospace;
     font-style: italic;
     opacity: 0.7;
+    white-space: break-spaces;
+    overflow-x: auto;
+    background-color: var(--bg-secondary-color);
+
     code {
       white-space: pre-wrap;
       word-wrap: break-word;
@@ -211,6 +215,9 @@ onMounted(async () => {
     border: 1px solid var(--border-primary-color);
     background-color: var(--bg-secondary-color);
     border-radius: 2px;
+    * {
+      background-color: transparent;
+    }
   }
 
   ul {
@@ -253,6 +260,15 @@ onMounted(async () => {
       margin-top: 30px;
       height: calc(100% - 35px);
       opacity: 0.5;
+    }
+  }
+
+  ol {
+    > li {
+      > ul {
+        margin-top: 0;
+        padding-top: 0;
+      }
     }
   }
 
