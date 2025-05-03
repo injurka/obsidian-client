@@ -73,16 +73,18 @@ if (import.meta.env.PROD) {
   // Обеспечивает свежесть при наличии сети.
   registerRoute(
     contentApiPattern,
-    new NetworkFirst({
-      cacheName: 'static-content-network-first',
+    new StaleWhileRevalidate({
+      cacheName: 'static-content-stale-while-revalidate',
       plugins: [
         new ExpirationPlugin({
-          maxEntries: 100, // Максимальное количество записей в кэше
-          maxAgeSeconds: 7 * 24 * 60 * 60, // Кэшировать до 7 дней
+          maxEntries: 100,
+          maxAgeSeconds: 7 * 24 * 60 * 60,
         }),
+        new CacheableResponsePlugin({ statuses: [0, 200] }), // Добавьте статус 0 для кэширования офлайн ответов
       ],
     }),
   )
+
   registerRoute(
     contentImgPattern,
     new StaleWhileRevalidate({
@@ -92,6 +94,7 @@ if (import.meta.env.PROD) {
           maxEntries: 100,
           maxAgeSeconds: 30 * 24 * 60 * 60, // Кэшировать до 30ni  дней
         }),
+        new CacheableResponsePlugin({ statuses: [0, 200] }), // Добавьте статус 0
       ],
     }),
   )
