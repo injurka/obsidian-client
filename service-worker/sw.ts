@@ -6,9 +6,7 @@ import { clientsClaim } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { NetworkFirst } from 'workbox-strategies'
-import { onShareTarget } from './share-target'
-import { onNotificationClick, onPush } from './web-push-notifications'
+import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 
 declare let self: ServiceWorkerGlobalScope
 
@@ -54,30 +52,39 @@ if (import.meta.env.PROD) {
       ],
     }),
   )
-  // registerRoute(
-  //   ({ sameOrigin, url }) =>
-  //     sameOrigin
-  //     && url.pathname.startsWith('/fonts/'),
-  //   new StaleWhileRevalidate({
-  //     cacheName: 'chinisik-fonts',
-  //     plugins: [
-  //       new CacheableResponsePlugin({ statuses: [200] }),
-  //       new ExpirationPlugin({ purgeOnQuotaError: true, maxAgeSeconds: 60 * 60 * 24 * 15 }), // 15 days max
-  //     ],
-  //   }),
-  // )
-  // registerRoute(
-  //   ({ sameOrigin, url }) =>
-  //     sameOrigin
-  //     && url.pathname.startsWith('/chinese-pinyin-sound/'),
-  //   new StaleWhileRevalidate({
-  //     cacheName: 'chinisik-pinyin',
-  //     plugins: [
-  //       new CacheableResponsePlugin({ statuses: [200] }),
-  //       new ExpirationPlugin({ purgeOnQuotaError: true, maxAgeSeconds: 60 * 60 * 24 * 15 }), // 15 days max
-  //     ],
-  //   }),
-  // )
+
+  // URL-ы вашего динамического контента (например, из папки 'content')
+  // Убедитесь, что этот паттерн соответствует URL-ам, которые ваше приложение запрашивает
+  const contentApiPattern = /\/content\/.*\.(json|txt|html)$/i // Пример паттерна для .json, .txt, .html в папке content
+  const contentImgPattern = /\/content\/.*\.(png|jpg|jpeg|svg|gif)$/i // Пример паттерна для img
+
+  // Стратегия для nav.json и других часто обновляемых данных: NetworkFirst
+  // Пытается получить с сети, если оффлайн - из кэша.
+  // Обеспечивает свежесть при наличии сети.
+  registerRoute(
+    contentApiPattern,
+    new NetworkFirst({
+      cacheName: 'static-content-network-first',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 100, // Максимальное количество записей в кэше
+          maxAgeSeconds: 7 * 24 * 60 * 60, // Кэшировать до 7 дней
+        }),
+      ],
+    }),
+  )
+  registerRoute(
+    contentImgPattern,
+    new StaleWhileRevalidate({
+      cacheName: 'content-images',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 100,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // Кэшировать до 30ni  дней
+        }),
+      ],
+    }),
+  )
 }
 
 registerRoute(new NavigationRoute(
@@ -87,7 +94,3 @@ registerRoute(new NavigationRoute(
 
 self.skipWaiting()
 clientsClaim()
-
-self.addEventListener('push', onPush)
-self.addEventListener('notificationclick', onNotificationClick)
-self.addEventListener('fetch', onShareTarget)
