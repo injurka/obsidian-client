@@ -2,6 +2,7 @@
 import { useChangeTheme } from '~/shared/composables/change-theme'
 
 const app = useAppConfig()
+const { $pwa } = useNuxtApp()
 const { theme, getHeadThemeColor } = useChangeTheme()
 
 useHead({
@@ -25,10 +26,18 @@ watch(
     })
   },
 )
+
+onMounted(() => {
+  if ($pwa?.offlineReady) {
+    // eslint-disable-next-line no-console
+    console.info('App ready to work offline')
+  }
+})
 </script>
 
 <template>
   <NuxtLoadingIndicator color="var(--border-accent-color)" />
+  <NuxtPwaManifest />
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>

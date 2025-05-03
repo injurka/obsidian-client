@@ -1,6 +1,23 @@
-
 export default defineNuxtConfig({
-  ssr: true,
+  ssr: false,
+
+  typescript: {
+    tsConfig: {
+      exclude: ['../service-worker'],
+      vueCompilerOptions: {
+        target: 3.5,
+      },
+    },
+  },
+
+  routeRules: {
+    '/manifest.webmanifest': {
+      headers: {
+        'Content-Type': 'application/manifest+json',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
+      },
+    },
+  },
 
   imports: {
     autoImport: true,
@@ -34,8 +51,70 @@ export default defineNuxtConfig({
     },
   },
 
+  pwa: {
+    strategies: 'injectManifest',
+    srcDir: 'service-worker',
+    filename: 'sw.ts',
+    base: '/',
+    registerType: 'autoUpdate',
+    scope: '/',
+    includeAssets: ['favicon.ico'],
+    manifest: {
+      name: 'WanderMark',
+      short_name: 'WanderMark',
+      description: 'WanderMark',
+      theme_color: '#ffffff',
+      lang: 'ru',
+      icons: [{
+        src: 'pwa-64x64.png',
+        sizes: '64x64',
+        type: 'image/png',
+      }, {
+        src: 'pwa-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      }, {
+        src: 'pwa-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      }, {
+        src: 'maskable-icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      }],
+      screenshots: [{
+        src: 'maskable-icon-512x512.png',
+        sizes: '512X512',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'Application',
+      }, {
+        src: 'maskable-icon-512x512.png',
+        sizes: '512X512',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'Application',
+      }],
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      navigateFallbackDenylist: [/^\/api\//],
+    },
+    injectManifest: {
+      globPatterns: ['**/*.{js,json,css,html,txt,svg,png,ico,webp,woff,woff2,ttf,eot,otf,wasm}'],
+      globIgnores: ['emojis/**', 'manifest**.webmanifest'],
+      maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 20,
+    },
+  },
+
   hooks: {
-    async "prerender:routes"(ctx) {
+    'prerender:routes': async function (ctx) {
       // TODO
       // const vaults = await fetch("https://api.kvakushnik.ru/static/wander-mark/content/nav.json").then(
       //   (res) => res.json(),
@@ -43,24 +122,22 @@ export default defineNuxtConfig({
       const vaults = [{ sysname: 'Travel' }]
 
       for await (const vault of vaults) {
+        // eslint-disable-next-line node/prefer-global/process
         const nav = await fetch(`${process.env.NUXT_PUBLIC_STATIC_BASE_URL}/content/${vault.sysname}/nav.json`).then(
-          (res) => res.json(),
-        );
-        const links = generateFilePaths(nav, `/${vault.sysname}`);
+          res => res.json(),
+        )
+        const links = generateFilePaths(nav, `/${vault.sysname}`)
 
         for (const page of links) {
-          ctx.routes.add(page);
+          ctx.routes.add(page)
         }
       }
-
-
     },
   },
 
   components: {
     //
   },
-
 
   devServer: {
     port: 5173,
@@ -71,6 +148,7 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxtjs/color-mode',
     'vuetify-nuxt-module',
+    '@vite-pwa/nuxt',
     '@pinia/nuxt',
   ],
 
@@ -132,13 +210,12 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
 })
 
-
 // Define the structure of the JSON nodes using a TypeScript interface
 interface FileSystemNode {
-  sysname: string;
-  title: string; // Included for completeness, though not used for path generation
-  type: 'directory' | 'file';
-  children?: FileSystemNode[]; // Optional children array for directories
+  sysname: string
+  title: string // Included for completeness, though not used for path generation
+  type: 'directory' | 'file'
+  children?: FileSystemNode[] // Optional children array for directories
 }
 
 /**
@@ -150,21 +227,21 @@ interface FileSystemNode {
 function findFilePaths(
   node: FileSystemNode,
   currentPath: string,
-  filePaths: string[]
+  filePaths: string[],
 ): void {
   // Construct the full path for the current node
   // Avoid double slash if currentPath is just '/' (though our base starts with /Travel)
-  const newPath = `${currentPath}/${node.sysname}`;
+  const newPath = `${currentPath}/${node.sysname}`
 
   // If it's a file, add its path to the results array
   if (node.type === 'file') {
-    filePaths.push(newPath);
+    filePaths.push(newPath)
   }
   // If it's a directory and has children, recurse into each child
   else if (node.type === 'directory' && node.children) {
     for (const child of node.children) {
       // Pass the newly constructed path (path to this directory) to the recursive call
-      findFilePaths(child, newPath, filePaths);
+      findFilePaths(child, newPath, filePaths)
     }
   }
 }
@@ -177,13 +254,13 @@ function findFilePaths(
  * @returns An array of strings, where each string is a full path to a file.
  */
 function generateFilePaths(data: FileSystemNode[], basePath: string = '/Travel'): string[] {
-  const allFilePaths: string[] = [];
+  const allFilePaths: string[] = []
 
   // Iterate over each root node in the input data
   for (const rootNode of data) {
     // Start the recursive search from each root node
-    findFilePaths(rootNode, basePath, allFilePaths);
+    findFilePaths(rootNode, basePath, allFilePaths)
   }
 
-  return allFilePaths;
+  return allFilePaths
 }
