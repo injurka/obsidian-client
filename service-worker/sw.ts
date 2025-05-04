@@ -59,10 +59,9 @@ if (import.meta.env.PROD) {
       ],
     }),
   )
-
   // Паттерн для файлов контента (json, txt, html, md) через прокси /api/cms/content/
-  const contentApiPattern = /\/api\/cms\/content\/.*\.(json|txt|html|md)$/i
-  const contentImgPattern = /\/api\/cms\/content\/.*\.(png|jpg|jpeg|svg|gif)$/i
+  const contentApiPattern = /\/static\/wander-mark\/.*\.(json|txt|html|md)$/i
+  const contentImgPattern = /\/static\/wander-mark\/.*\.(png|jpg|jpeg|svg|gif)$/i
 
   // === ВАЖНО: ПОРЯДОК ПРАВИЛ ИМЕЕТ ЗНАЧЕНИЕ ===
   // Более специфичные правила должны идти перед более общими.
