@@ -18,7 +18,7 @@ ENV NUXT_PUBLIC_APP_VERSION=$CI_COMMIT_TAG
 WORKDIR /opt/app
 
 COPY --from=node_modules /opt/app/node_modules ./node_modules
-COPY ./source                                  .
+COPY .                                         .
 
 RUN npm run build
 
