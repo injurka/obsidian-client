@@ -68,7 +68,7 @@ if (import.meta.env.PROD) {
 
   // URL-ы вашего динамического контента (например, из папки 'content')
   // Убедитесь, что этот паттерн соответствует URL-ам, которые ваше приложение запрашивает
-  const contentApiPattern = /\/content\/.*\.(json|txt|html)$/i // Пример паттерна для .json, .txt, .html в папке content
+  const contentApiPattern = /\/content\/.*\.(json|txt|html|md)$/i // Пример паттерна для .json, .txt, .html в папке content
   const contentImgPattern = /\/content\/.*\.(png|jpg|jpeg|svg|gif)$/i // Пример паттерна для img
 
   // Стратегия для nav.json и других часто обновляемых данных: NetworkFirst
@@ -91,7 +91,7 @@ if (import.meta.env.PROD) {
   registerRoute(
     contentImgPattern,
     new StaleWhileRevalidate({
-      cacheName: 'content-images',
+      cacheName: 'static-content-images-stale-while-revalidate',
       plugins: [
         new ExpirationPlugin({
           maxEntries: 500,

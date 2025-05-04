@@ -18,11 +18,11 @@ const params = computed(() => {
   } as RouteParams
 })
 
-const { staticBaseUrl } = useRuntimeConfig().public
-
 function updateOnlineStatus() {
   isOnline.value = navigator.onLine
 }
+
+const { cmsProxyUrl } = useRuntimeConfig().public
 
 const {
   data: contentData,
@@ -30,12 +30,12 @@ const {
   status: contentStatus,
 } = useAsyncData(`content-${params.value.vault}-${params.value.pwd}`, () => {
   return $fetch<string>(
-    `${staticBaseUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
+    `${cmsProxyUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
     { method: 'get', responseType: 'text' },
   )
 })
 
-const imageBasePath = computed(() => (`${staticBaseUrl}/content/${params.value.vault}/_/`))
+const imageBasePath = computed(() => (`${cmsProxyUrl}/content/${params.value.vault}/_/`))
 
 watch(
   () => params.value.pwd,

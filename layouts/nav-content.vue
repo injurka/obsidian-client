@@ -27,9 +27,9 @@ const {
     return []
   }
 
-  const { staticBaseUrl } = useRuntimeConfig().public
+  const { cmsProxyUrl } = useRuntimeConfig().public
   const data = await $fetch<ContentNavItem[]>(
-    `${staticBaseUrl}/content/${params.value.vault}/nav.json`,
+    `${cmsProxyUrl}/content/${params.value.vault}/nav.json`,
     { method: 'get', responseType: 'json' },
   )
 

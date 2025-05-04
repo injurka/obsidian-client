@@ -6,11 +6,11 @@ interface NavItem {
   icon: string
 }
 
-const { staticBaseUrl } = useRuntimeConfig().public
+const { cmsProxyUrl } = useRuntimeConfig().public
 
 const { data: navData } = await useAsyncData<NavItem[]>(`nav-root`, async () => {
   return await $fetch<NavItem[]>(
-    `${staticBaseUrl}/content/nav.json`,
+    `${cmsProxyUrl}/content/nav.json`,
     { method: 'get', responseType: 'json' },
   )
 })

@@ -190,7 +190,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      staticBaseUrl: 'http://localhost:5173/content/',
+      cmsUrl: 'https://api.kvakushnik.ru/static/wander-mark',
+      cmsProxyUrl: '/api/cms',
     },
   },
 
