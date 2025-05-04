@@ -3,7 +3,7 @@
 /// <reference types="@types/workbox-sw" />
 
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
-import { clientsClaim } from 'workbox-core'
+import { cacheNames, clientsClaim } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
@@ -22,7 +22,7 @@ self.addEventListener('message', (event) => {
 // но явное добавление может быть полезно для гарантии.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(workbox.core.cacheNames.precache).then((cache) => {
+    caches.open(cacheNames.precache).then((cache) => {
       // Убедитесь, что корневая страница всегда кэшируется
       return cache.add('/')
     }),
