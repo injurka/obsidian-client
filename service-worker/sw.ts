@@ -1,6 +1,6 @@
+/* eslint-disable regexp/no-unused-capturing-group */
 /* eslint-disable no-console */
 /* eslint-disable unused-imports/no-unused-vars */
-/* eslint-disable regexp/no-unused-capturing-group */
 /// <reference lib="WebWorker" />
 /// <reference types="vite/client" />
 /// <reference types="@types/workbox-sw" />
@@ -65,15 +65,16 @@ if (import.meta.env.PROD) {
   const contentImgPattern = /\/api\/cms\/content\/.*\.(png|jpg|jpeg|svg|gif)$/i
 
   // === ВАЖНО: ПОРЯДОК ПРАВИЛ ИМЕЕТ ЗНАЧЕНИЕ ===
+  // Более специфичные правила должны идти перед более общими.
 
   // Стратегия StaleWhileRevalidate для файлов контента (json, md и т.д.)
   // Это правило ДОЛЖНО идти ПЕРЕД более общими правилами для /api/
   registerRoute(
+    // Используем функцию-матчер для логирования
     ({ url, request, event }) => {
       const matches = contentApiPattern.test(url.pathname)
       if (matches) {
-        // Логгируем, если паттерн контента совпал
-        console.log(`[SW] Matched content API pattern: ${url.pathname}`)
+        console.log(`[SW] Matched content API pattern for: ${url.pathname}`)
       }
       return matches
     },
@@ -84,17 +85,19 @@ if (import.meta.env.PROD) {
           maxEntries: 100,
           maxAgeSeconds: 7 * 24 * 60 * 60,
         }),
+        // Этот плагин разрешает кэширование только для статусов 0 (opaque) и 200 (OK)
         new CacheableResponsePlugin({ statuses: [0, 200] }),
       ],
     }),
   )
 
+  // Стратегия StaleWhileRevalidate для изображений контента
   registerRoute(
+    // Используем функцию-матчер для логирования
     ({ url, request, event }) => {
       const matches = contentImgPattern.test(url.pathname)
       if (matches) {
-        // Логгируем, если паттерн изображений совпал
-        console.log(`[SW] Matched image pattern: ${url.pathname}`)
+        console.log(`[SW] Matched image pattern for: ${url.pathname}`)
       }
       return matches
     },
@@ -113,25 +116,34 @@ if (import.meta.env.PROD) {
   // Стратегия NetworkOnly для ОБЩИХ запросов к /api/, которые НЕ ДОЛЖНЫ кэшироваться
   // Это правило ДОЛЖНО идти ПОСЛЕ всех специфичных правил для /api/ (например, /api/cms/content/).
   registerRoute(
+    // Используем функцию-матчер для логирования
     ({ url, request, event }) => {
       const matches = /^\/api\//.test(url.pathname)
       if (matches) {
         // Логгируем, если общий API паттерн совпал (это должно происходить только для запросов,
         // не попавших в contentApiPattern или contentImgPattern)
-        console.log(`[SW] Matched general API pattern: ${url.pathname}`)
+        console.log(`[SW] Matched general API pattern for: ${url.pathname}`)
       }
       return matches
     },
     new NetworkOnly(),
   )
 
-  // === КОНЕЦ НАСТРОЙКИ ПРАВИЛ === 
+  // === КОНЕЦ НАСТРОЙКИ ПРАВИЛ ===
 }
 
+// Маршрут для обработки навигационных запросов.
+// Все запросы, которые не совпадают со статическими файлами и другими маршрутами,
+// будут направлены на URL, созданный createHandlerBoundToURL('/').
+// Это обычно отдает HTML-оболочку приложения.
 registerRoute(new NavigationRoute(
   createHandlerBoundToURL('/'),
   { allowlist, denylist },
 ))
 
+// Активирует новую версию Service Worker'а сразу после установки,
+// пропуская состояние ожидания (waiting state).
 self.skipWaiting()
+// Захватывает всех активных клиентов (открытые вкладки),
+// чтобы новая версия SW начала контролировать их немедленно.
 clientsClaim()
