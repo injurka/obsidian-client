@@ -124,7 +124,7 @@ export default defineNuxtConfig({
 
       for await (const vault of vaults) {
         // eslint-disable-next-line node/prefer-global/process
-        const nav = await fetch(`${process.env.NUXT_PUBLIC_STATIC_BASE_URL}/content/${vault.sysname}/nav.json`).then(
+        const nav = await fetch(`${process.env.NUXT_PUBLIC_CMS_URL}/content/${vault.sysname}/nav.json`).then(
           res => res.json(),
         )
         const links = generateFilePaths(nav, `/${vault.sysname}`)
