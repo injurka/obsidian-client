@@ -100,11 +100,11 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,md}'],
       navigateFallbackDenylist: [/^\/api\//],
     },
     injectManifest: {
-      globPatterns: ['**/*.{js,json,css,html,txt,svg,png,ico,webp,woff,woff2,ttf,eot,otf,wasm}'],
+      globPatterns: ['**/*.{js,json,css,html,txt,svg,png,ico,webp,woff,woff2,ttf,eot,otf,wasm,md}'],
       globIgnores: ['emojis/**', 'manifest**.webmanifest'],
       maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
     },

@@ -10,6 +10,16 @@ const { setTheme, theme } = useChangeTheme()
 const contentViewerStore = useContentViewerStore()
 const menu = defineModel('menu', { required: true })
 
+const { $pwa } = useNuxtApp()
+
+function handleRefreshContent() {
+  // Этот метод в @vite-pwa/nuxt обычно инициирует обновление SW
+  // и перезагружает страницу после активации.
+  $pwa?.updateServiceWorker()
+}
+
+const needRefresh = computed(() => $pwa?.needRefresh) // Отслеживаем состояние необходимости обновления Service Worker'а
+
 const controlledTheme = computed({
   get: () => theme.value,
   set: (value: ThemesVariant) => setTheme(value),
@@ -80,6 +90,17 @@ const breadcrumbItems = computed<VBreadcrumbsItems>(() => {
       </template>
     </VBreadcrumbs>
     <div class="control">
+      <VBtn
+        v-if="needRefresh"
+        style="font-size: 0.8rem; margin-right: 12px;"
+        icon="mdi-refresh"
+        variant="text"
+        density="compact"
+        title="Обновить контент"
+        color="var(--fg-accent-color)"
+        @click="handleRefreshContent"
+      />
+
       <VMenu location="bottom end" :close-on-content-click="false">
         <template #activator="{ props }">
           <VBtn

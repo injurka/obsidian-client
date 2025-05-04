@@ -8,6 +8,7 @@ interface RouteParams {
 
 const route = useRoute()
 const store = useContentViewerStore()
+const isOnline = ref(true)
 
 const params = computed(() => {
   const routeParams = route.params as any
@@ -19,7 +20,15 @@ const params = computed(() => {
 
 const { staticBaseUrl } = useRuntimeConfig().public
 
-const { data: contentData, refresh: contentRefresh, status: contentStatus } = useAsyncData(`content-${params.value.vault}-${params.value.pwd}`, () => {
+function updateOnlineStatus() {
+  isOnline.value = navigator.onLine
+}
+
+const {
+  data: contentData,
+  refresh: contentRefresh,
+  status: contentStatus,
+} = useAsyncData(`content-${params.value.vault}-${params.value.pwd}`, () => {
   return $fetch<string>(
     `${staticBaseUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
     { method: 'get', responseType: 'text' },
@@ -32,8 +41,22 @@ watch(
   () => params.value.pwd,
   () => {
     contentRefresh()
+    if (typeof document !== 'undefined') {
+      document.querySelector('.main-content')!.scrollTo(0, 0)
+    }
   },
 )
+
+onMounted(() => {
+  isOnline.value = navigator.onLine
+  window.addEventListener('online', updateOnlineStatus)
+  window.addEventListener('offline', updateOnlineStatus)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('online', updateOnlineStatus)
+  window.removeEventListener('offline', updateOnlineStatus)
+})
 
 definePageMeta({
   layout: 'nav-content',
@@ -63,9 +86,19 @@ definePageMeta({
     </ClientOnly>
 
     <div v-else>
+      <!-- Проверяем статус сети -->
       <v-alert
+        v-if="!isOnline"
+        text="Вы оффлайн, и эта страница не была закэширована для просмотра без интернета."
+        title="Страница недоступна оффлайн."
+        type="warning"
+        variant="tonal"
+      />
+      <!-- Если онлайн, но данных нет (файл не существует, ошибка сервера и т.д.) -->
+      <v-alert
+        v-else
         text="Выберите интересующею вас тему."
-        title="Ничего не выбрано."
+        title="Ничего не выбрано или страница не найдена."
         type="info"
         variant="tonal"
       />
@@ -91,5 +124,11 @@ definePageMeta({
   flex-grow: 0;
   font-size: 4rem;
   color: var(--fg-accent-color);
+}
+
+.v-alert {
+  margin: 20px auto;
+  max-width: 800px;
+  width: 100%;
 }
 </style>

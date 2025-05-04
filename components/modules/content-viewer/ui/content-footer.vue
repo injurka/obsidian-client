@@ -53,20 +53,13 @@ const nextItem = computed(() => {
   return undefined
 })
 
-const handlePreviousItem = () => {
+function handlePreviousItem() {
   navigateTo({ path: `/${props.vault}/${previousItem.value!.path}` })
-  if (typeof document !== 'undefined') {
-    document.querySelector('.main-content')!.scrollTo(0,0) 
-  }
 }
 
-const handleNextItem = () => {
+function handleNextItem() {
   navigateTo({ path: `/${props.vault}/${nextItem.value!.path}` })
-  if (typeof document !== 'undefined') {
-    document.querySelector('.main-content')!.scrollTo(0,0) 
-  }
 }
-
 </script>
 
 <template>

@@ -17,7 +17,16 @@ const params = computed(() => {
   return { vault: routeParams.vault } as RouteParams
 })
 
-const { data: navItems, refresh: navRefresh, status: navStatus } = await useAsyncData<ContentNavItem[]>(`nav-${params.value.vault}`, async () => {
+const {
+  data: navItems,
+  refresh: navRefresh,
+  status: navStatus,
+} = await useAsyncData<ContentNavItem[]>(`nav-${params.value.vault}`, async () => {
+  if (!params.value.vault) {
+    contentViewerStore.$patch({ navItems: null })
+    return []
+  }
+
   const { staticBaseUrl } = useRuntimeConfig().public
   const data = await $fetch<ContentNavItem[]>(
     `${staticBaseUrl}/content/${params.value.vault}/nav.json`,
@@ -29,13 +38,26 @@ const { data: navItems, refresh: navRefresh, status: navStatus } = await useAsyn
   return data
 })
 
+watchEffect(() => {
+  if (!params.value.vault) {
+    contentViewerStore.$patch({ navItems: null })
+  }
+})
+
 watch(
   () => params.value.vault,
-  () => navRefresh(),
+  () => !!params.value.vault && navRefresh(),
 )
 
-onMounted(()=> {
-  menu.value = true
+onMounted(() => {
+  if (navItems.value !== null || navStatus.value === 'pending') {
+    menu.value = true
+  }
+  watch(navStatus, (newStatus) => {
+    if (newStatus === 'success' && navItems.value !== null) {
+      menu.value = true
+    }
+  })
 })
 </script>
 

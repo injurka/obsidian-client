@@ -3,7 +3,7 @@
 /// <reference types="@types/workbox-sw" />
 
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
-import { clientsClaim } from 'workbox-core'
+import { cacheNames, clientsClaim } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
@@ -18,15 +18,18 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(workbox.core.cacheNames.precache).then((cache) => {
+    caches.open(cacheNames.precache).then((cache) => {
       return cache.add('/')
     }),
   )
 })
 
 const entries = self.__WB_MANIFEST
-if (import.meta.env.DEV)
+if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
+  console.log('> self.__WB_MANIFEST', self.__WB_MANIFEST)
   entries.push({ url: '/', revision: Math.random().toString() })
+}
 
 precacheAndRoute(entries)
 
@@ -77,7 +80,7 @@ if (import.meta.env.PROD) {
       cacheName: 'static-content-stale-while-revalidate',
       plugins: [
         new ExpirationPlugin({
-          maxEntries: 100,
+          maxEntries: 500,
           maxAgeSeconds: 7 * 24 * 60 * 60,
         }),
         new CacheableResponsePlugin({ statuses: [0, 200] }), // Добавьте статус 0 для кэширования офлайн ответов
@@ -91,7 +94,7 @@ if (import.meta.env.PROD) {
       cacheName: 'content-images',
       plugins: [
         new ExpirationPlugin({
-          maxEntries: 100,
+          maxEntries: 500,
           maxAgeSeconds: 30 * 24 * 60 * 60, // Кэшировать до 30ni  дней
         }),
         new CacheableResponsePlugin({ statuses: [0, 200] }), // Добавьте статус 0
