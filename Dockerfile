@@ -3,7 +3,7 @@ FROM oven/bun AS node_modules
 
 WORKDIR /opt/app
 
-COPY ./source/package*.json ./source/bun* ./
+COPY ./package*.json ./bun* ./
 
 RUN bun install --ignore-scripts
 
