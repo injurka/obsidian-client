@@ -114,27 +114,27 @@ export default defineNuxtConfig({
     },
   },
 
-  hooks: {
-    'prerender:routes': async function (ctx) {
-      // TODO
-      // const vaults = await fetch("https://api.kvakushnik.ru/static/wander-mark/content/nav.json").then(
-      //   (res) => res.json(),
-      // );
-      const vaults = [{ sysname: 'Travel' }]
+  // hooks: {
+  //   'prerender:routes': async function (ctx) {
+  //     // TODO
+  //     // const vaults = await fetch("https://api.kvakushnik.ru/static/wander-mark/content/nav.json").then(
+  //     //   (res) => res.json(),
+  //     // );
+  //     const vaults = [{ sysname: 'Travel' }]
 
-      for await (const vault of vaults) {
-        // eslint-disable-next-line node/prefer-global/process
-        const nav = await fetch(`${process.env.NUXT_PUBLIC_CMS_URL}/content/${vault.sysname}/nav.json`).then(
-          res => res.json(),
-        )
-        const links = generateFilePaths(nav, `/${vault.sysname}`)
+  //     for await (const vault of vaults) {
+  //       // eslint-disable-next-line node/prefer-global/process
+  //       const nav = await fetch(`${process.env.NUXT_PUBLIC_CMS_URL}/content/${vault.sysname}/nav.json`).then(
+  //         res => res.json(),
+  //       )
+  //       const links = generateFilePaths(nav, `/${vault.sysname}`)
 
-        for (const page of links) {
-          ctx.routes.add(page)
-        }
-      }
-    },
-  },
+  //       for (const page of links) {
+  //         ctx.routes.add(page)
+  //       }
+  //     }
+  //   },
+  // },
 
   components: {
     //
