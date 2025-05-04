@@ -191,7 +191,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       cmsUrl: 'https://api.kvakushnik.ru/static/wander-mark',
-      cmsProxyUrl: '/api/cms',
     },
   },
 

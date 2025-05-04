@@ -22,7 +22,7 @@ function updateOnlineStatus() {
   isOnline.value = navigator.onLine
 }
 
-const { cmsProxyUrl } = useRuntimeConfig().public
+const { cmsUrl } = useRuntimeConfig().public
 
 const {
   data: contentData,
@@ -30,12 +30,12 @@ const {
   status: contentStatus,
 } = useAsyncData(`content-${params.value.vault}-${params.value.pwd}`, () => {
   return $fetch<string>(
-    `${cmsProxyUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
+    `${cmsUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
     { method: 'get', responseType: 'text' },
   )
 })
 
-const imageBasePath = computed(() => (`${cmsProxyUrl}/content/${params.value.vault}/_/`))
+const imageBasePath = computed(() => (`${cmsUrl}/content/${params.value.vault}/_/`))
 
 watch(
   () => params.value.pwd,
