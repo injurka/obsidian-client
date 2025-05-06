@@ -14,10 +14,10 @@ import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strateg
 
 declare let self: ServiceWorkerGlobalScope
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING')
-    self.skipWaiting()
-})
+// self.addEventListener('message', (event) => {
+//   if (event.data && event.data.type === 'SKIP_WAITING')
+//     self.skipWaiting()
+// })
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

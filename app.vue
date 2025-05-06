@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { InstallPromptBanner } from '~/components/shared/install-prompt-banner'
 import { useChangeTheme } from '~/shared/composables/change-theme'
 
 const app = useAppConfig()
@@ -32,6 +33,11 @@ onMounted(() => {
     // eslint-disable-next-line no-console
     console.info('App ready to work offline')
   }
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    // eslint-disable-next-line no-console
+    console.log('serviceWorker:', event)
+  })
 })
 </script>
 
@@ -41,4 +47,5 @@ onMounted(() => {
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <InstallPromptBanner />
 </template>

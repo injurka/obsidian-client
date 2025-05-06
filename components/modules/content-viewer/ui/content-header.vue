@@ -12,13 +12,31 @@ const menu = defineModel('menu', { required: true })
 
 const { $pwa } = useNuxtApp()
 
-function handleRefreshContent() {
+function handleSWUpdate() {
   // Этот метод в @vite-pwa/nuxt обычно инициирует обновление SW
   // и перезагружает страницу после активации.
   $pwa?.updateServiceWorker()
 }
 
-const needRefresh = computed(() => $pwa?.needRefresh) // Отслеживаем состояние необходимости обновления Service Worker'а
+async function handleForceRefresh() {
+  try {
+    handleSWUpdate()
+    if ('caches' in window) {
+      await caches.delete('static-content-stale-while-revalidate')
+      await caches.delete('content-images')
+      window.location.reload()
+    }
+  }
+  catch {}
+}
+
+const needSWRefresh = computed(() => $pwa?.needRefresh) // Отслеживаем состояние необходимости обновления Service Worker'а
+
+const isContentViewing = computed(() => {
+  const params = route.params as any
+  // Проверяем, что параметр pwd существует и не пустой (для /[vault]/[...pwd].vue)
+  return Array.isArray(params.pwd) ? params.pwd.length > 0 : !!params.pwd
+})
 
 const controlledTheme = computed({
   get: () => theme.value,
@@ -62,7 +80,11 @@ const breadcrumbItems = computed<VBreadcrumbsItems>(() => {
 
   let currentPath = `/${vault}`
   pwd.forEach((segment, index) => {
-    currentPath += `/${segment}`
+    // Для последнего элемента используем маршрут до файла,
+    // для директорий - до директории
+    const pathToSegment = `${currentPath}/${segment}`
+    currentPath = pathToSegment // Обновляем currentPath для следующей итерации
+
     items.push({
       title: segment,
       to: currentPath,
@@ -91,14 +113,24 @@ const breadcrumbItems = computed<VBreadcrumbsItems>(() => {
     </VBreadcrumbs>
     <div class="control">
       <VBtn
-        v-if="needRefresh"
+        v-if="needSWRefresh"
         style="font-size: 0.8rem; margin-right: 12px;"
         icon="mdi-refresh"
         variant="text"
         density="compact"
-        title="Обновить контент"
+        title="Доступно обновление приложения"
         color="var(--fg-accent-color)"
-        @click="handleRefreshContent"
+        @click="handleSWUpdate"
+      />
+      <VBtn
+        v-if="isContentViewing"
+        style="font-size: 0.8rem; margin-right: 12px;"
+        icon="mdi-sync"
+        variant="text"
+        density="compact"
+        title="Принудительно обновить контент текущей страницы"
+        color="var(--fg-primary-color)"
+        @click="handleForceRefresh"
       />
 
       <VMenu location="bottom end" :close-on-content-click="false">
