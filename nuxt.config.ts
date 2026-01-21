@@ -2,12 +2,19 @@ export default defineNuxtConfig({
   ssr: true,
 
   typescript: {
+    typeCheck: false,
+    strict: true,
     tsConfig: {
       exclude: ['../service-worker'],
       vueCompilerOptions: {
         target: 3.5,
       },
     },
+  },
+
+  components: {
+    dirs: [],
+    global: false,
   },
 
   routeRules: {
@@ -36,19 +43,6 @@ export default defineNuxtConfig({
 
   features: {
     inlineStyles: false,
-  },
-
-  vuetify: {
-    moduleOptions: {
-      /* other module options */
-      // styles: { configFile: '/settings.scss' },
-    },
-    vuetifyOptions: {
-      /* vuetify options */
-      icons: {
-        defaultSet: 'mdi',
-      },
-    },
   },
 
   pwa: {
@@ -97,25 +91,20 @@ export default defineNuxtConfig({
         label: 'Application',
       }],
     },
-    workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,md}'],
-      navigateFallbackDenylist: [/^\/api\//],
-      cleanupOutdatedCaches: true,
-    },
     injectManifest: {
-      globPatterns: ['**/*.{js,json,css,html,txt,svg,png,ico,webp,woff,woff2,ttf,eot,otf,wasm,md}'],
+      globPatterns: ['**/*.{js,json,css,html,txt,svg,png,ico,webp,woff,woff2,ttf,eot,otf,wasm}'],
       globIgnores: ['emojis/**', 'manifest**.webmanifest'],
       maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
+      dontCacheBustURLsMatching: /\.\w{8}\./,
+      additionalManifestEntries: [{
+        url: '/',
+        revision: import.meta.env.NUXT_PUBLIC_APP_VERSION || new Date().toString(),
+      }],
     },
     client: {
       installPrompt: true,
-      periodicSyncForUpdates: 20,
+      periodicSyncForUpdates: 30,
     },
-  },
-
-  components: {
-    //
   },
 
   devServer: {
@@ -126,7 +115,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/fonts',
     '@nuxtjs/color-mode',
-    'vuetify-nuxt-module',
+    '@vueuse/nuxt',
     '@vite-pwa/nuxt',
     '@pinia/nuxt',
   ],
@@ -134,7 +123,6 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'light',
     fallback: 'light',
-    hid: 'nuxt-color-mode-script',
     globalName: '__NUXT_COLOR_MODE__',
     componentName: 'ColorScheme',
     classPrefix: '',
@@ -163,6 +151,7 @@ export default defineNuxtConfig({
 
   css: [
     '/assets/scss/global.scss',
+    '/assets/scss/atomic.scss',
     '/assets/scss/normalize.scss',
   ],
 
@@ -176,10 +165,7 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: `
-            @import '~/assets/scss/_setup.scss';
-          `,
-          api: 'modern-compiler',
+          additionalData: `@use '~/assets/scss/_setup.scss' as *;`,
         },
       },
     },
