@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ContentNavItem } from '~/components/05.modules/content-viewer'
-import { ContentViewerHeader, ContentViewerNavigation, useContentViewerStore } from '~/components/05.modules/content-viewer'
 import { PageLoader } from '~/components/02.shared/page-loader'
+import { ContentViewerHeader, ContentViewerNavigation, useContentViewerStore } from '~/components/05.modules/content-viewer'
 
 const contentViewerStore = useContentViewerStore()
 const menu = ref(true)
@@ -91,7 +91,7 @@ watch(
     max-width: 100% !important;
     padding-left: 40px;
     padding-right: 40px;
-    
+
     @include mobile {
       padding: 0;
     }

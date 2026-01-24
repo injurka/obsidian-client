@@ -8,12 +8,7 @@ COPY ./package*.json ./bun* ./
 RUN bun install --ignore-scripts
 
 # ---- Build ------------ #
-FROM node:22-bullseye-slim AS dist
-
-ARG CI_COMMIT_TAG
-ENV CI_COMMIT_TAG=$CI_COMMIT_TAG
-ENV SENTRY_RELEASE=$CI_COMMIT_TAG
-ENV NUXT_PUBLIC_APP_VERSION=$CI_COMMIT_TAG
+FROM node:24-bullseye-slim AS dist
 
 WORKDIR /opt/app
 
@@ -23,9 +18,7 @@ COPY .                                         .
 RUN npm run build
 
 # ---- Release ---------- #
-FROM gcr.io/distroless/nodejs22-debian12
-
-ARG CI_COMMIT_TAG
+FROM gcr.io/distroless/nodejs24-debian12
 
 WORKDIR /opt/app
 

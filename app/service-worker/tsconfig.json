@@ -1,17 +1,33 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
+    "target": "esnext",
     "lib": [
       "ESNext",
       "WebWorker",
       "DOM.Iterable"
     ],
+    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "~/*": [
+        "../../*"
+      ],
+      "@/*": [
+        "../../*"
+      ]
+    },
+    "resolveJsonModule": true,
     "types": [
       "vite/client"
-    ]
+    ],
+    "noEmit": true,
+    "esModuleInterop": true
   },
   "include": [
-    "./"
+    "./**/*.ts"
   ],
-  "exclude": []
+  "exclude": [
+    "node_modules"
+  ]
 }

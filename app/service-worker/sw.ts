@@ -1,35 +1,121 @@
-/* eslint-disable regexp/no-unused-capturing-group */
-/* eslint-disable no-console */
-/* eslint-disable unused-imports/no-unused-vars */
-/// <reference lib="WebWorker" />
-/// <reference types="vite/client" />
-/// <reference types="@types/workbox-sw" />
-
-import { CacheableResponsePlugin } from 'workbox-cacheable-response'
-import { cacheNames, clientsClaim } from 'workbox-core'
-import { ExpirationPlugin } from 'workbox-expiration'
+import type { ApiCacheRule, ServiceWorkerMessage } from './model/types'
+import { clientsClaim } from 'workbox-core'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
+import { messageHandlers } from './lib/message-handlers'
+import { AssetAnalyzer, CacheStrategyFactory } from './lib/utils'
+import { CACHE_CONFIG } from './model/types'
 
 declare let self: ServiceWorkerGlobalScope
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(cacheNames.precache).then((cache) => {
-      return cache.add('/')
-    }),
-  )
-})
-
-const entries = self.__WB_MANIFEST
-if (import.meta.env.DEV)
-  entries.push({ url: '/', revision: Math.random().toString() })
-
-precacheAndRoute(entries)
-
+// 1. Активация и очистка
+self.skipWaiting()
+clientsClaim()
 cleanupOutdatedCaches()
 
+// 2. Прекэширование манифеста (генерируется Vite)
+const entries = self.__WB_MANIFEST || []
+if (import.meta.env.DEV) {
+  entries.push({ url: '/', revision: Math.random().toString() })
+}
+precacheAndRoute(entries)
+
+// 3. Правила для внешних ресурсов и API
+const API_RULES: ApiCacheRule[] = [
+  // --- КОНТЕНТ (Markdown, JSON) ---
+  {
+    // Паттерн для файлов контента из CMS
+    pattern: /\/static\/wander-mark\/.*\.(json|txt|html|md)$/i,
+    cacheName: CACHE_CONFIG.names.contentFiles,
+    strategy: 'StaleWhileRevalidate', 
+    maxAgeSeconds: CACHE_CONFIG.durations.api,
+    maxEntries: CACHE_CONFIG.limits.content,
+  },
+  // --- КАРТИНКИ КОНТЕНТА ---
+  {
+    pattern: /\/static\/wander-mark\/.*\.(png|jpg|jpeg|svg|gif|webp)$/i,
+    cacheName: CACHE_CONFIG.names.contentImages,
+    strategy: 'StaleWhileRevalidate',
+    maxAgeSeconds: CACHE_CONFIG.durations.medium,
+    maxEntries: CACHE_CONFIG.limits.images,
+  },
+  // --- ШРИФТЫ ---
+  {
+    pattern: /\.(woff|woff2|ttf|eot)$/i,
+    cacheName: CACHE_CONFIG.names.fonts,
+    strategy: 'CacheFirst', // Шрифты меняются редко
+    maxAgeSeconds: CACHE_CONFIG.durations.long,
+    maxEntries: CACHE_CONFIG.limits.fonts,
+  },
+  // --- ICONIFY ---
+  {
+    pattern: /^https:\/\/api\.iconify\.design/i,
+    cacheName: CACHE_CONFIG.names.icons,
+    strategy: 'StaleWhileRevalidate',
+    maxAgeSeconds: CACHE_CONFIG.durations.medium,
+    maxEntries: CACHE_CONFIG.limits.icons,
+  },
+  // --- ИСКЛЮЧЕНИЯ API ---
+  {
+    // Все остальные запросы к /api/, которые не попали выше
+    pattern: /^\/api\//,
+    cacheName: 'api-network-only',
+    strategy: 'NetworkOnly',
+    maxAgeSeconds: 0,
+    maxEntries: 0,
+  },
+]
+
+// Регистрация правил API
+API_RULES.forEach((rule) => {
+  let strategy
+  const opts = { maxEntries: rule.maxEntries, maxAgeSeconds: rule.maxAgeSeconds, statuses: rule.statuses }
+
+  switch (rule.strategy) {
+    case 'CacheFirst': strategy = CacheStrategyFactory.createCacheFirst(rule.cacheName, opts); break
+    case 'NetworkFirst': strategy = CacheStrategyFactory.createNetworkFirst(rule.cacheName, opts); break
+    case 'StaleWhileRevalidate': strategy = CacheStrategyFactory.createStaleWhileRevalidate(rule.cacheName, opts); break
+    case 'NetworkOnly': strategy = CacheStrategyFactory.createNetworkOnly(); break
+  }
+
+  if (strategy) {
+    registerRoute(
+      ({ url }) => rule.pattern.test(url.pathname) || rule.pattern.test(url.href),
+      strategy,
+    )
+  }
+})
+
+// 4. Статические ассеты (JS/CSS) с умным разделением
+function scriptStyleMatch({ request, sameOrigin }: any) {
+  return sameOrigin && (request.destination === 'script' || request.destination === 'style')
+}
+
+registerRoute(
+  opts => scriptStyleMatch(opts) && AssetAnalyzer.getAssetType(opts.url.href) === 'hashed',
+  CacheStrategyFactory.createCacheFirst(CACHE_CONFIG.names.hashedAssets, {
+    maxEntries: CACHE_CONFIG.limits.static,
+    maxAgeSeconds: CACHE_CONFIG.durations.long,
+  }),
+)
+
+registerRoute(
+  opts => scriptStyleMatch(opts) && AssetAnalyzer.getAssetType(opts.url.href) === 'vendor',
+  CacheStrategyFactory.createCacheFirst(CACHE_CONFIG.names.vendorAssets, {
+    maxEntries: CACHE_CONFIG.limits.static,
+    maxAgeSeconds: CACHE_CONFIG.durations.medium,
+  }),
+)
+
+registerRoute(
+  opts => scriptStyleMatch(opts) && AssetAnalyzer.getAssetType(opts.url.href) === 'regular',
+  CacheStrategyFactory.createStaleWhileRevalidate(CACHE_CONFIG.names.regularAssets, {
+    maxEntries: CACHE_CONFIG.limits.static,
+    maxAgeSeconds: CACHE_CONFIG.durations.short,
+  }),
+)
+
+// 5. SPA Навигация (Fallback)
 let allowlist: undefined | RegExp[]
 if (import.meta.env.DEV)
   allowlist = [/^\/$/]
@@ -43,101 +129,21 @@ if (import.meta.env.PROD) {
   ]
 }
 
-if (import.meta.env.PROD) {
-  registerRoute(
-    ({ request, sameOrigin }) => sameOrigin && request.destination === 'manifest',
-    new NetworkFirst({
-      cacheName: 'wander-mark-webmanifest',
-      plugins: [
-        new CacheableResponsePlugin({ statuses: [200] }),
-        new ExpirationPlugin({ maxEntries: 100 }),
-      ],
-    }),
-  )
-  // Паттерн для файлов контента (json, txt, html, md) через прокси /api/cms/content/
-  const contentApiPattern = /\/static\/wander-mark\/.*\.(json|txt|html|md)$/i
-  const contentImgPattern = /\/static\/wander-mark\/.*\.(png|jpg|jpeg|svg|gif)$/i
-
-  // === ВАЖНО: ПОРЯДОК ПРАВИЛ ИМЕЕТ ЗНАЧЕНИЕ ===
-  // Более специфичные правила должны идти перед более общими.
-
-  // Стратегия StaleWhileRevalidate для файлов контента (json, md и т.д.)
-  // Это правило ДОЛЖНО идти ПЕРЕД более общими правилами для /api/
-  registerRoute(
-    // Используем функцию-матчер для логирования
-    ({ url, request, event }) => {
-      const matches = contentApiPattern.test(url.pathname)
-      if (matches) {
-        console.log(`[SW] Matched content API pattern for: ${url.pathname}`)
-      }
-      return matches
-    },
-    new StaleWhileRevalidate({
-      cacheName: 'static-content-stale-while-revalidate',
-      plugins: [
-        new ExpirationPlugin({
-          maxEntries: 100,
-          maxAgeSeconds: 7 * 24 * 60 * 60,
-        }),
-        // Этот плагин разрешает кэширование только для статусов 0 (opaque) и 200 (OK)
-        new CacheableResponsePlugin({ statuses: [0, 200] }),
-      ],
-    }),
-  )
-
-  // Стратегия StaleWhileRevalidate для изображений контента
-  registerRoute(
-    // Используем функцию-матчер для логирования
-    ({ url, request, event }) => {
-      const matches = contentImgPattern.test(url.pathname)
-      if (matches) {
-        console.log(`[SW] Matched image pattern for: ${url.pathname}`)
-      }
-      return matches
-    },
-    new StaleWhileRevalidate({
-      cacheName: 'content-images',
-      plugins: [
-        new ExpirationPlugin({
-          maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60,
-        }),
-        new CacheableResponsePlugin({ statuses: [0, 200] }),
-      ],
-    }),
-  )
-
-  // Стратегия NetworkOnly для ОБЩИХ запросов к /api/, которые НЕ ДОЛЖНЫ кэшироваться
-  // Это правило ДОЛЖНО идти ПОСЛЕ всех специфичных правил для /api/ (например, /api/cms/content/).
-  registerRoute(
-    // Используем функцию-матчер для логирования
-    ({ url, request, event }) => {
-      const matches = /^\/api\//.test(url.pathname)
-      if (matches) {
-        // Логгируем, если общий API паттерн совпал (это должно происходить только для запросов,
-        // не попавших в contentApiPattern или contentImgPattern)
-        console.log(`[SW] Matched general API pattern for: ${url.pathname}`)
-      }
-      return matches
-    },
-    new NetworkOnly(),
-  )
-
-  // === КОНЕЦ НАСТРОЙКИ ПРАВИЛ ===
-}
-
-// Маршрут для обработки навигационных запросов.
-// Все запросы, которые не совпадают со статическими файлами и другими маршрутами,
-// будут направлены на URL, созданный createHandlerBoundToURL('/').
-// Это обычно отдает HTML-оболочку приложения.
 registerRoute(new NavigationRoute(
   createHandlerBoundToURL('/'),
   { allowlist, denylist },
 ))
 
-// Активирует новую версию Service Worker'а сразу после установки,
-// пропуская состояние ожидания (waiting state).
-self.skipWaiting()
-// Захватывает всех активных клиентов (открытые вкладки),
-// чтобы новая версия SW начала контролировать их немедленно.
-clientsClaim()
+// 6. Обработка сообщений
+self.addEventListener('message', async (event) => {
+  if (!event.data || !event.ports.length)
+    return
+
+  const { type, payload } = event.data as ServiceWorkerMessage
+  const port = event.ports[0]
+  const handler = messageHandlers[type]
+
+  if (handler) {
+    await handler(port, payload)
+  }
+})

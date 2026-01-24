@@ -1,0 +1,5 @@
+./.vscode
+./source/.env
+node_modules
+.output
+.nuxt

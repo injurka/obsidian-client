@@ -1,0 +1,11 @@
+services:
+  app:
+    image: injurka/md-client:v1
+    ports:
+      - "5555:3000"
+    volumes:
+      - /root/sources/md-client/data:/app/data
+    environment:
+      - PORT=3000
+      - NUXT_FS_BASE_PATH=/app/data
+      - NUXT_PUBLIC_CMS_URL=/local-files
