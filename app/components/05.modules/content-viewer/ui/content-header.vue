@@ -3,8 +3,15 @@ import { Icon } from '@iconify/vue'
 import { KitBtn } from '~/components/01.kit'
 import ViewerSettingsMenu from './viewer-settings-menu.vue'
 
+interface Props {
+  visible: boolean
+}
+
+defineProps<Props>()
+defineModel('menu', { required: true })
+
 const route = useRoute()
-const menu = defineModel('menu', { required: true })
+
 const breadcrumbsTrackRef = ref<HTMLElement | null>(null)
 
 const breadcrumbs = computed(() => {
@@ -41,7 +48,7 @@ const currentVault = computed(() => route.params.vault as string)
 </script>
 
 <template>
-  <header class="content-header">
+  <header class="content-header" :class="{ 'is-hidden': !visible }">
     <div class="header-left">
       <KitBtn
         v-if="!menu"
@@ -83,10 +90,16 @@ const currentVault = computed(() => route.params.vault as string)
   border-bottom: 1px solid var(--border-secondary-color);
   background-color: rgba(var(--bg-header-color), 0.85);
   backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
   z-index: 10;
   gap: 16px;
+  flex-shrink: 0;
+
+  transition: margin-top 0.3s ease-in-out;
+  will-change: margin-top;
+
+  &.is-hidden {
+    margin-top: -50px;
+  }
 }
 
 .header-left {
@@ -116,7 +129,6 @@ const currentVault = computed(() => route.params.vault as string)
   min-width: 0;
   overflow: hidden;
   position: relative;
-
   mask-image: linear-gradient(90deg, black 85%, transparent 100%);
 }
 
@@ -125,12 +137,10 @@ const currentVault = computed(() => route.params.vault as string)
   align-items: center;
   white-space: nowrap;
   overflow-x: auto;
-
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
   }
-
   padding-right: 20px;
 }
 
@@ -151,7 +161,6 @@ const currentVault = computed(() => route.params.vault as string)
   background-color: transparent;
   transition: all 0.2s ease;
   font-weight: 500;
-
   flex-shrink: 0;
 
   &:hover:not(.is-active) {

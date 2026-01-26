@@ -65,6 +65,20 @@ function openImageViewer() {
 function handleContentClick(event: MouseEvent) {
   const target = event.target as HTMLElement
 
+  // Ищем ближайий родительский тег <a>
+  const link = target.closest('a')
+
+  if (link && link.getAttribute('href')?.startsWith('/')) {
+    event.preventDefault()
+
+    const href = link.getAttribute('href')
+
+    if (href) {
+      navigateTo(href)
+    }
+    return
+  }
+
   if (target.tagName === 'IMG') {
     const img = target as HTMLImageElement
     if (target.closest('.callout-content') || target.closest('.markdown-body')) {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ContentNavItem } from '~/components/05.modules/content-viewer'
+import { useEventListener } from '@vueuse/core'
 import { PageLoader } from '~/components/02.shared/page-loader'
 import { ContentViewerHeader, ContentViewerNavigation, useContentViewerStore } from '~/components/05.modules/content-viewer'
 
@@ -8,6 +9,31 @@ const menu = ref(true)
 const params = useTypedRouteParams()
 const scrollableRef = ref<HTMLElement | null>(null)
 const route = useRoute()
+
+const isHeaderVisible = ref(true)
+const lastScrollTop = ref(0)
+const scrollThreshold = 50
+
+function handleScroll() {
+  if (!scrollableRef.value)
+    return
+
+  const scrollTop = scrollableRef.value.scrollTop
+
+  if (scrollTop < scrollThreshold) {
+    isHeaderVisible.value = true
+  }
+  else if (scrollTop < lastScrollTop.value) {
+    isHeaderVisible.value = true
+  }
+  else {
+    isHeaderVisible.value = false
+  }
+
+  lastScrollTop.value = scrollTop <= 0 ? 0 : scrollTop
+}
+
+useEventListener(scrollableRef, 'scroll', handleScroll)
 
 const { data: navItems, status } = await useAsyncData<ContentNavItem[]>(
   `nav-${params.value.vault}`,
@@ -48,7 +74,7 @@ watch(
       <ContentViewerNavigation v-model:menu="menu" :items="navItems ?? []" />
 
       <main class="main-area">
-        <ContentViewerHeader v-model:menu="menu" />
+        <ContentViewerHeader v-model:menu="menu" :visible="isHeaderVisible" />
         <div
           ref="scrollableRef"
           class="content-scrollable"
