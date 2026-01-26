@@ -52,12 +52,16 @@ const nextItem = computed(() => (currentIndex.value !== -1 && currentIndex.value
 <style lang="scss" scoped>
 .content-footer {
   display: flex;
-  gap: 16px;
+  gap: 4px;
   padding: 32px 20px;
   border-top: 1px solid var(--border-secondary-color);
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
+
+  @include mobile {
+    padding: 16px 8px;
+  }
 }
 
 .spacer {

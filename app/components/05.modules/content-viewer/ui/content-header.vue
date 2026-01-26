@@ -1,49 +1,11 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
-import { KitBtn, KitCheckbox, KitDropdown } from '~/components/01.kit'
-import { ThemesVariant, useChangeTheme } from '~/shared/composables/use-change-theme'
-import { useContentViewerStore } from '../store'
+import { KitBtn } from '~/components/01.kit'
+import ViewerSettingsMenu from './viewer-settings-menu.vue'
 
 const route = useRoute()
-const { setTheme, theme } = useChangeTheme()
-const contentViewerStore = useContentViewerStore()
 const menu = defineModel('menu', { required: true })
-
 const breadcrumbsTrackRef = ref<HTMLElement | null>(null)
-
-const { $pwa } = useNuxtApp()
-
-function handleSWUpdate() { $pwa?.updateServiceWorker() }
-
-async function handleForceRefresh() {
-  try {
-    handleSWUpdate()
-    if ('caches' in window) {
-      await caches.delete('static-content-stale-while-revalidate')
-      await caches.delete('content-images')
-      window.location.reload()
-    }
-  }
-  catch {}
-}
-
-const needSWRefresh = computed(() => $pwa?.needRefresh)
-
-const isContentViewing = computed(() => {
-  const params = route.params as any
-  return Array.isArray(params.pwd) ? params.pwd.length > 0 : !!params.pwd
-})
-
-const controlledTheme = computed({
-  get: () => theme.value,
-  set: (value: ThemesVariant) => setTheme(value),
-})
-
-const themePreset = computed(() => {
-  return controlledTheme.value === ThemesVariant.Light
-    ? { next: ThemesVariant.Dark, icon: 'mdi:weather-sunny' }
-    : { next: ThemesVariant.Light, icon: 'mdi:weather-night' }
-})
 
 const breadcrumbs = computed(() => {
   const vault = route.params.vault as string
@@ -74,6 +36,8 @@ watch(
   },
   { immediate: true },
 )
+
+const currentVault = computed(() => route.params.vault as string)
 </script>
 
 <template>
@@ -87,57 +51,24 @@ watch(
         class="menu-btn flex-shrink-0"
         @click="menu = true"
       />
-      
+
       <nav class="breadcrumbs">
         <div ref="breadcrumbsTrackRef" class="breadcrumb-track">
           <template v-for="(item, i) in breadcrumbs" :key="i">
             <Icon v-if="i > 0" icon="mdi:chevron-right" size="14" class="separator" />
-            <NuxtLink
-              :to="item.to"
+            <span
               class="breadcrumb-item"
               :class="{ 'is-active': item.disabled }"
             >
               {{ item.title }}
-            </NuxtLink>
+            </span>
           </template>
         </div>
       </nav>
     </div>
 
     <div class="header-right flex-shrink-0">
-      <KitBtn
-        v-if="needSWRefresh"
-        variant="text" size="sm" color="accent"
-        icon="mdi:refresh"
-        title="Обновить приложение"
-        @click="handleSWUpdate"
-      />
-      <KitBtn
-        v-if="isContentViewing"
-        variant="text" size="sm"
-        icon="mdi:sync"
-        title="Обновить контент"
-        @click="handleForceRefresh"
-      />
-
-      <KitDropdown>
-        <template #activator>
-          <KitBtn variant="text" size="sm" icon="mdi:tune-variant" title="Настройки" />
-        </template>
-        <div class="settings-panel">
-          <KitCheckbox
-            v-model="contentViewerStore.borderlessViewEnabled"
-            label="Без границ"
-          />
-        </div>
-      </KitDropdown>
-
-      <KitBtn
-        variant="text" size="sm"
-        :icon="themePreset.icon"
-        title="Сменить тему"
-        @click="controlledTheme = themePreset.next"
-      />
+      <ViewerSettingsMenu :vault="currentVault" />
     </div>
   </header>
 </template>
@@ -155,7 +86,7 @@ watch(
   position: sticky;
   top: 0;
   z-index: 10;
-  gap: 16px; 
+  gap: 16px;
 }
 
 .header-left {
@@ -164,13 +95,12 @@ watch(
   gap: 8px;
   flex: 1;
   min-width: 0;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 4px;
 }
 
 .flex-shrink-0 {
@@ -182,11 +112,11 @@ watch(
 }
 
 .breadcrumbs {
-  flex: 1; 
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   position: relative;
-  
+
   mask-image: linear-gradient(90deg, black 85%, transparent 100%);
 }
 
@@ -195,19 +125,19 @@ watch(
   align-items: center;
   white-space: nowrap;
   overflow-x: auto;
-  
+
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
   }
-  
+
   padding-right: 20px;
 }
 
 .separator {
   color: var(--fg-muted-color);
   margin: 0 4px;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .breadcrumb-item {
@@ -221,8 +151,8 @@ watch(
   background-color: transparent;
   transition: all 0.2s ease;
   font-weight: 500;
-  
-  flex-shrink: 0; 
+
+  flex-shrink: 0;
 
   &:hover:not(.is-active) {
     background-color: var(--bg-hover-color);
@@ -237,17 +167,12 @@ watch(
   }
 }
 
-.settings-panel {
-  padding: 8px;
-  min-width: 200px;
-}
-
 @include mobile {
   .content-header {
     padding: 0 12px;
     gap: 8px;
   }
-  
+
   .breadcrumb-item {
     font-size: 0.8rem;
     padding: 2px 6px;

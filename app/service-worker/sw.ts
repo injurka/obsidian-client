@@ -24,16 +24,15 @@ precacheAndRoute(entries)
 const API_RULES: ApiCacheRule[] = [
   // --- КОНТЕНТ (Markdown, JSON) ---
   {
-    // Паттерн для файлов контента из CMS
-    pattern: /\/static\/wander-mark\/.*\.(json|txt|html|md)$/i,
+    pattern: /\/content\/.*\.(json|txt|html|md)$/i,
     cacheName: CACHE_CONFIG.names.contentFiles,
-    strategy: 'StaleWhileRevalidate', 
+    strategy: 'StaleWhileRevalidate',
     maxAgeSeconds: CACHE_CONFIG.durations.api,
     maxEntries: CACHE_CONFIG.limits.content,
   },
   // --- КАРТИНКИ КОНТЕНТА ---
   {
-    pattern: /\/static\/wander-mark\/.*\.(png|jpg|jpeg|svg|gif|webp)$/i,
+    pattern: /\/content\/.*\.(png|jpg|jpeg|svg|gif|webp)$/i,
     cacheName: CACHE_CONFIG.names.contentImages,
     strategy: 'StaleWhileRevalidate',
     maxAgeSeconds: CACHE_CONFIG.durations.medium,
@@ -43,7 +42,7 @@ const API_RULES: ApiCacheRule[] = [
   {
     pattern: /\.(woff|woff2|ttf|eot)$/i,
     cacheName: CACHE_CONFIG.names.fonts,
-    strategy: 'CacheFirst', // Шрифты меняются редко
+    strategy: 'CacheFirst',
     maxAgeSeconds: CACHE_CONFIG.durations.long,
     maxEntries: CACHE_CONFIG.limits.fonts,
   },
@@ -57,7 +56,6 @@ const API_RULES: ApiCacheRule[] = [
   },
   // --- ИСКЛЮЧЕНИЯ API ---
   {
-    // Все остальные запросы к /api/, которые не попали выше
     pattern: /^\/api\//,
     cacheName: 'api-network-only',
     strategy: 'NetworkOnly',

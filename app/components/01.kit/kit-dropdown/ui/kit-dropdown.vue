@@ -5,7 +5,7 @@ interface Props {
   modelValue?: boolean
   placement?: 'left' | 'right' | 'center'
   width?: string | number
-  closeOnContentClick?: boolean 
+  closeOnContentClick?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -103,7 +103,7 @@ defineExpose({ close: () => isOpen.value = false, open: () => isOpen.value = tru
 <style lang="scss" scoped>
 .kit-dropdown {
   position: relative;
-  display: inline-flex; 
+  display: inline-flex;
 }
 
 .dropdown-trigger {
@@ -139,9 +139,7 @@ defineExpose({ close: () => isOpen.value = false, open: () => isOpen.value = tru
   gap: 2px;
   overflow: hidden;
   color: var(--fg-primary-color);
-
   max-height: 400px;
-  overflow-y: auto;
 
   &::-webkit-scrollbar {
     width: 4px;

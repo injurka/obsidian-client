@@ -20,7 +20,7 @@ function getMimeType(filename: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig().public
   const basePath = config.fsBasePath
 
   if (!basePath) {
@@ -30,33 +30,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Получаем путь из URL
-  const reqPath = event.context.params?.path || ''
-
-  // Собираем полный путь внутри контейнера
-  // Например: /app/data + /content/nav.json
+  const reqPath = decodeURIComponent(event.context.params?.path || '')
   const fullPath = path.join(basePath, reqPath)
 
-  // ЗАЩИТА: Проверяем, что путь все еще внутри basePath (защита от Path Traversal ../../)
-  if (!fullPath.startsWith(basePath)) {
-    throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
-  }
-
-  // Проверяем существование файла
   if (!fs.existsSync(fullPath)) {
+    console.error(`[404] File not found: ${fullPath}`)
     throw createError({ statusCode: 404, statusMessage: 'File not found' })
   }
 
-  // Проверяем, что это файл, а не папка
   const stat = fs.statSync(fullPath)
   if (!stat.isFile()) {
     throw createError({ statusCode: 404, statusMessage: 'Not a file' })
   }
 
-  // Устанавливаем правильный заголовок Content-Type
   const mimeType = getMimeType(fullPath)
   setResponseHeader(event, 'Content-Type', mimeType)
 
-  // Отдаем файл как поток
   return sendStream(event, fs.createReadStream(fullPath))
 })

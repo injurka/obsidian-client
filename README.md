@@ -15,8 +15,10 @@ docker run -d --network host \
 ```
 
 <!--
-docker build -t md-client:v1 .
+docker build -t injurka/md-client:v6 .
+docker push injurka/md-client:v6
 -->
+
 <!--
 docker run -d \
   -p 5555:3000 \
@@ -25,9 +27,4 @@ docker run -d \
   -e NUXT_FS_BASE_PATH="/app/data" \
   -e NUXT_PUBLIC_CMS_URL="/local-files" \
   injurka/md-client:v1
--->
-
-<!--
-docker build -t injurka/md-client:v2 .
-docker push injurka/md-client:v2
 -->

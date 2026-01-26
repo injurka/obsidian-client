@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ContentNavItem } from '~/components/05.modules/content-viewer'
-import { KitBtn, KitCheckbox, KitDropdown, KitInput } from '~/components/01.kit'
-import { useContentViewerStore } from '../store'
+import { KitBtn, KitInput } from '~/components/01.kit'
 import NavigationTree from './navigation-tree.vue'
 import { findPathBySysname } from '../lib/navigation'
 
@@ -12,7 +11,6 @@ interface Props {
 const props = defineProps<Props>()
 const menu = defineModel<boolean>('menu', { required: true })
 
-const contentViewerStore = useContentViewerStore()
 const params = useTypedRouteParams()
 const sidebarRef = ref<HTMLElement | null>(null)
 
@@ -74,16 +72,7 @@ function stopResize() {
           placeholder="Поиск..."
           rounded
         />
-        <KitDropdown>
-          <template #activator>
-            <KitBtn variant="text" size="sm" icon="mdi:cog" />
-          </template>
-          <div class="settings-list">
-            <KitCheckbox v-model="contentViewerStore.coloredFoldersEnabled" label="Цветные папки" />
-            <KitCheckbox v-model="contentViewerStore.showIconsEnabled" label="Иконки" />
-            <KitCheckbox v-model="contentViewerStore.showOutlineEnabled" label="Линии структуры" />
-          </div>
-        </KitDropdown>
+        <!-- Кнопка настроек удалена, так как перенесена в ContentHeader -->
       </div>
 
       <div class="sidebar-content custom-scrollbar">
@@ -208,13 +197,6 @@ function stopResize() {
   @include mobile {
     display: none !important;
   }
-}
-
-.settings-list {
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .custom-scrollbar {

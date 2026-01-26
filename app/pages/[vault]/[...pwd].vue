@@ -9,10 +9,14 @@ const imageBasePath = computed(() => (`${cmsUrl}/content/${params.value.vault}/_
 
 const { data: contentData, status } = useAsyncData(
   () => `content-${params.value.vault}-${params.value.pwd.join('/')}`,
-  () => $fetch<string>(
-    `${cmsUrl}/content/${params.value.vault}/${params.value.pwd.join('/')}.md`,
-    { responseType: 'text' },
-  ),
+  () => {
+    const path = params.value.pwd.map(segment => encodeURIComponent(segment)).join('/')
+    
+    return $fetch<string>(
+      `${cmsUrl}/content/${params.value.vault}/${path}.md`,
+      { responseType: 'text' },
+    )
+  },
   {
     watch: [params], 
   },

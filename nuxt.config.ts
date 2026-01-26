@@ -157,7 +157,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      cmsUrl: 'https://api.kvakushnik.ru/static/wander-mark',
+      fsBasePath: '/app/data',
+      cmsUrl: '/local-files',
     },
   },
 

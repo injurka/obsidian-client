@@ -156,15 +156,28 @@ function handleContentClick(event: MouseEvent) {
     font-weight: 700;
   }
 
+  a {
+    color: var(--fg-accent-color);
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(var(--fg-accent-color-rgb), 0.4);
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background-color: rgba(var(--fg-accent-color-rgb), 0.1);
+      border-bottom-color: var(--fg-accent-color);
+    }
+  }
+
   em {
     color: var(--fg-accent-color);
     font-style: italic;
   }
 
   code:not(pre > code) {
-    background-color: rgba(var(--fg-accent-color-rgb), 0.1); 
-    border: 1px solid rgba(var(--fg-accent-color-rgb), 0.2); 
-    color: var(--fg-accent-color); 
+    background-color: rgba(var(--fg-accent-color-rgb), 0.1);
+    border: 1px solid rgba(var(--fg-accent-color-rgb), 0.2);
+    color: var(--fg-accent-color);
     padding: 0.1em 0.4em;
     margin: 0 0.1em;
     font-size: 0.9em;
@@ -179,7 +192,7 @@ function handleContentClick(event: MouseEvent) {
     padding: 10px;
     border-radius: 8px;
   }
-  
+
   pre:not(.shiki) {
     background: var(--bg-tertiary-color);
     padding: 1rem;
@@ -213,7 +226,7 @@ function handleContentClick(event: MouseEvent) {
     margin-bottom: 0.5rem;
 
     &::marker {
-      color: var(--fg-accent-color); 
+      color: var(--fg-accent-color);
     }
   }
 
@@ -241,13 +254,17 @@ function handleContentClick(event: MouseEvent) {
   }
 
   table {
+    display: block;
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
     border-collapse: collapse;
     margin: 2rem 0;
     font-size: 0.95rem;
     border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 0 1px var(--border-secondary-color); 
+
+    box-shadow: 0 0 0 1px var(--border-secondary-color);
   }
 
   th {
@@ -291,7 +308,7 @@ function handleContentClick(event: MouseEvent) {
     background-color: rgba(var(--callout-color), var(--co-bg-opacity));
     border-left: var(--co-border-width) solid rgb(var(--callout-color));
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
 
     // Fallback
     --callout-color: var(--co-note);
@@ -323,7 +340,7 @@ function handleContentClick(event: MouseEvent) {
     p {
       margin: 8px 0;
     }
-    
+
     p:last-child {
       margin-bottom: 0;
     }
@@ -419,7 +436,7 @@ details.callout {
 </style>
 
 <style lang="scss">
-  .hero {
+.hero {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -473,7 +490,6 @@ details.callout {
   width: 100%;
 }
 
-// Сброс глобальных стилей H1 внутри карточки
 .hero .meta h1 {
   margin: 0 !important;
   border: none !important;
@@ -481,9 +497,9 @@ details.callout {
   background: none !important;
   font-size: 1.5rem;
   line-height: 1.2;
-  color: var(--fg-primary-color); // Используем тему приложения
+  color: var(--fg-primary-color);
   font-weight: 700;
-  display: block; // Возвращаем блочность, если H1 стал флексом глобально
+  display: block;
 }
 
 .hero .meta .pinyin {
@@ -497,7 +513,7 @@ details.callout {
 
 .hero .meta .desc {
   font-size: 0.9rem;
-  color: var(--fg-secondary-color); // Вторичный цвет темы
+  color: var(--fg-secondary-color);
   margin-top: 6px;
   line-height: 1.4;
 }
