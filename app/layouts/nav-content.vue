@@ -74,7 +74,11 @@ watch(
       <ContentViewerNavigation v-model:menu="menu" :items="navItems ?? []" />
 
       <main class="main-area">
-        <ContentViewerHeader v-model:menu="menu" :visible="isHeaderVisible" />
+        <ContentViewerHeader
+          :menu="menu"
+          :visible="isHeaderVisible"
+          @update:menu="menu = $event"
+        />
         <div
           ref="scrollableRef"
           class="content-scrollable"

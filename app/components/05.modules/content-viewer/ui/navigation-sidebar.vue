@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { ContentNavItem } from '~/components/05.modules/content-viewer'
 import { KitBtn, KitInput } from '~/components/01.kit'
-import NavigationTree from './navigation-tree.vue'
 import { findPathBySysname } from '../lib/navigation'
+import NavigationTree from './navigation-tree.vue'
 
 interface Props {
   items: ContentNavItem[] | null
@@ -10,7 +10,6 @@ interface Props {
 
 const props = defineProps<Props>()
 const menu = defineModel<boolean>('menu', { required: true })
-
 const params = useTypedRouteParams()
 const sidebarRef = ref<HTMLElement | null>(null)
 
@@ -21,7 +20,6 @@ const searchQuery = ref('')
 async function selectItem(item: ContentNavItem) {
   const path = findPathBySysname(props.items || [], item.sysname)
   if (path) {
-    // На мобильных закрываем меню после навигации
     if (window.innerWidth < 768) {
       menu.value = false
     }
@@ -52,6 +50,12 @@ function stopResize() {
 </script>
 
 <template>
+  <div
+    v-if="menu"
+    class="sidebar-scrim"
+    @click="menu = false"
+  />
+
   <aside
     ref="sidebarRef"
     class="sidebar-wrapper"
@@ -63,16 +67,17 @@ function stopResize() {
         <KitBtn
           variant="text"
           size="sm"
-          :icon="menu ? 'mdi:arrow-left' : 'mdi:menu'"
-          @click="menu = !menu"
+          icon="mdi:arrow-left"
+          class="mobile-close-btn"
+          @click="menu = false"
         />
+
         <KitInput
           v-model="searchQuery"
           variant="solo"
           placeholder="Поиск..."
           rounded
         />
-        <!-- Кнопка настроек удалена, так как перенесена в ContentHeader -->
       </div>
 
       <div class="sidebar-content custom-scrollbar">
@@ -123,14 +128,14 @@ function stopResize() {
   }
 
   @include mobile {
-    position: fixed; 
+    position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 9999; 
+    z-index: 9999;
     border-right: none;
-    
-    width: 100% !important; 
+
+    width: 100% !important;
     max-width: 100vw;
 
     &.is-closed {
@@ -145,10 +150,10 @@ function stopResize() {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  min-width: 250px; 
+  min-width: 250px;
 
   @include mobile {
-    width: 100vw; 
+    width: 100vw;
   }
 }
 
@@ -209,6 +214,28 @@ function stopResize() {
   &::-webkit-scrollbar-thumb {
     background-color: var(--border-secondary-color);
     border-radius: 4px;
+  }
+}
+
+.sidebar-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+.mobile-close-btn {
+  display: none;
+}
+
+@include mobile {
+  .sidebar-scrim {
+    display: block;
+  }
+
+  .mobile-close-btn {
+    display: inline-flex;
   }
 }
 </style>

@@ -3,16 +3,15 @@ import { Icon } from '@iconify/vue'
 import { KitBtn } from '~/components/01.kit'
 import ViewerSettingsMenu from './viewer-settings-menu.vue'
 
-interface Props {
+const props = defineProps<{
+  menu: boolean
   visible: boolean
-}
+}>()
 
-defineProps<Props>()
-defineModel('menu', { required: true })
-
-const route = useRoute()
+const emit = defineEmits(['update:menu'])
 
 const breadcrumbsTrackRef = ref<HTMLElement | null>(null)
+const route = useRoute()
 
 const breadcrumbs = computed(() => {
   const vault = route.params.vault as string
@@ -51,12 +50,11 @@ const currentVault = computed(() => route.params.vault as string)
   <header class="content-header" :class="{ 'is-hidden': !visible }">
     <div class="header-left">
       <KitBtn
-        v-if="!menu"
         variant="text"
         size="sm"
-        icon="mdi:menu"
+        :icon="props.menu ? 'mdi:arrow-left' : 'mdi:menu'"
         class="menu-btn flex-shrink-0"
-        @click="menu = true"
+        @click="emit('update:menu', !props.menu)"
       />
 
       <nav class="breadcrumbs">
