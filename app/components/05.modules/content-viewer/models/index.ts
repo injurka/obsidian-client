@@ -10,5 +10,11 @@ interface ContentNavItem {
   children?: ContentNavItem[]
 }
 
+interface VaultMetaSettings {
+  scripts?: string[]
+  styles?: string[]
+  [key: string]: any
+}
+
 export { ContentNavItemType }
-export type { ContentNavItem }
+export type { ContentNavItem, VaultMetaSettings }

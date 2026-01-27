@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { ContentNavItem } from '../models'
 import { Icon } from '@iconify/vue'
+import { ContentNavItemType } from '../models'
 import { useContentViewerStore } from '../store'
-import { ContentNavItemType, type ContentNavItem } from '../models'
 
 interface Props {
   items: ContentNavItem[]
@@ -71,7 +72,7 @@ function getNextRootIndex(currentIndex: number) {
         v-if="item.type === ContentNavItemType.Directory"
         class="tree-row folder-row"
         :class="[getColorClass(index)]"
-        :style="{ paddingLeft: `${level * 16 + 8}px` }"
+        :style="{ paddingLeft: `${level * 16 + 2}px` }"
         @click.stop="toggleFolder(item.sysname)"
       >
         <span class="tree-toggle-icon">
@@ -94,7 +95,7 @@ function getNextRootIndex(currentIndex: number) {
         v-else
         class="tree-row file-row"
         :class="[getColorClass(index)]"
-        :style="{ paddingLeft: `${level * 16 + 24}px` }"
+        :style="{ paddingLeft: `${level * 16 + 22}px` }"
         @click.stop="emit('select', item)"
       >
         <span v-if="store.showIconsEnabled" class="tree-icon flex-shrink-0">
@@ -139,7 +140,7 @@ function getNextRootIndex(currentIndex: number) {
 .tree-row {
   display: flex;
   align-items: center;
-  padding: 6px 8px;
+  padding: 4px 0px;
   cursor: pointer;
   user-select: none;
   border-radius: 6px;
@@ -149,7 +150,7 @@ function getNextRootIndex(currentIndex: number) {
   max-width: 100%;
   overflow: hidden;
   position: relative;
-  z-index: 1; // Поверх линии
+  z-index: 1;
 
   &:hover {
     background-color: var(--bg-hover-color);
@@ -188,14 +189,13 @@ function getNextRootIndex(currentIndex: number) {
 }
 
 .tree-children {
-  position: relative; // Важно для позиционирования линии внутри
+  position: relative;
 }
 
-/* Линия структуры */
 .outline-guide {
   position: absolute;
   top: 0;
-  bottom: 0; /* Растягиваем на всю высоту детей */
+  bottom: 0;
   width: 1px;
   background-color: var(--border-primary-color);
   opacity: 0.4;
@@ -203,7 +203,6 @@ function getNextRootIndex(currentIndex: number) {
   pointer-events: none;
 }
 
-/* Система цветов */
 $c-blue: 66, 165, 245;
 $c-red: 239, 83, 80;
 $c-green: 102, 187, 106;
@@ -211,12 +210,24 @@ $c-orange: 255, 167, 38;
 $c-purple: 171, 71, 188;
 $c-brown: 141, 110, 99;
 
-.row-color-1 { --row-rgb: #{$c-orange}; }
-.row-color-2 { --row-rgb: #{$c-purple}; }
-.row-color-3 { --row-rgb: #{$c-green}; }
-.row-color-4 { --row-rgb: #{$c-blue}; }
-.row-color-5 { --row-rgb: #{$c-red}; }
-.row-color-6 { --row-rgb: #{$c-brown}; }
+.row-color-1 {
+  --row-rgb: #{$c-orange};
+}
+.row-color-2 {
+  --row-rgb: #{$c-purple};
+}
+.row-color-3 {
+  --row-rgb: #{$c-green};
+}
+.row-color-4 {
+  --row-rgb: #{$c-blue};
+}
+.row-color-5 {
+  --row-rgb: #{$c-red};
+}
+.row-color-6 {
+  --row-rgb: #{$c-brown};
+}
 
 [class*='row-color-'] {
   color: rgb(var(--row-rgb));

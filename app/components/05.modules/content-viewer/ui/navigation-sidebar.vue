@@ -1,21 +1,33 @@
 <script lang="ts" setup>
 import type { ContentNavItem } from '~/components/05.modules/content-viewer'
+import { useSwipe } from '@vueuse/core'
 import { KitBtn, KitInput } from '~/components/01.kit'
 import { findPathBySysname } from '../lib/navigation'
 import NavigationTree from './navigation-tree.vue'
 
 interface Props {
   items: ContentNavItem[] | null
+  menu: boolean
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits(['update:menu'])
 const menu = defineModel<boolean>('menu', { required: true })
-const params = useTypedRouteParams()
 const sidebarRef = ref<HTMLElement | null>(null)
-
 const sidebarWidth = ref(300)
 const resizing = ref(false)
 const searchQuery = ref('')
+
+const params = useTypedRouteParams()
+
+useSwipe(sidebarRef, {
+  passive: true,
+  onSwipeEnd: (_, direction) => {
+    if (props.menu && direction === 'left') {
+      emit('update:menu', false)
+    }
+  },
+})
 
 async function selectItem(item: ContentNavItem) {
   const path = findPathBySysname(props.items || [], item.sysname)
@@ -151,9 +163,11 @@ function stopResize() {
   width: 100%;
   overflow: hidden;
   min-width: 250px;
+  font-size: 1rem;
 
   @include mobile {
     width: 100vw;
+    font-size: 1.5rem;
   }
 }
 
@@ -165,6 +179,12 @@ function stopResize() {
   border-bottom: 1px solid var(--border-secondary-color);
   height: 50px;
   flex-shrink: 0;
+
+  @include mobile {
+    :deep(input) {
+      font-size: 1.1rem !important;
+    }
+  }
 }
 
 .sidebar-content {

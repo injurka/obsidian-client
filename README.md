@@ -15,8 +15,8 @@ docker run -d --network host \
 ```
 
 <!--
-docker build -t injurka/md-client:v11 .
-docker push injurka/md-client:v11
+docker build -t injurka/md-client:v14 .
+docker push injurka/md-client:v14
 -->
 
 <!--
