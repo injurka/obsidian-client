@@ -2,7 +2,9 @@
 import type MarkdownIt from 'markdown-it'
 import { PageLoader } from '~/components/02.shared/page-loader'
 import { ThemesVariant, useChangeTheme } from '~/shared/composables/use-change-theme'
+import { useHanziDetection } from '../composables/use-hanzi-detection'
 import { createMarkdownRenderer } from '../lib'
+import HanziTooltip from './hanzi-tooltip.vue'
 
 interface Props {
   content: string
@@ -11,11 +13,14 @@ interface Props {
 
 const props = defineProps<Props>()
 const { theme } = useChangeTheme()
+const { getHanziFromEvent } = useHanziDetection()
 
 const renderedContent = ref<string>('')
 const mdInstance = ref<MarkdownIt | null>(null)
 const isLoading = ref<boolean>(true)
 const currentImages = ref<string[]>([])
+
+const hanziTooltipRef = ref<InstanceType<typeof HanziTooltip> | null>(null)
 
 const shikiTheme = computed(() => {
   return theme.value === ThemesVariant.Light ? 'catppuccin-latte' : 'catppuccin-mocha'
@@ -57,7 +62,6 @@ onMounted(() => {
 })
 
 function openImageViewer() {
-  // TODO: Implement Logic later
   // eslint-disable-next-line no-console
   console.log('Open image viewer with:', currentImages.value)
 }
@@ -65,17 +69,23 @@ function openImageViewer() {
 function handleContentClick(event: MouseEvent) {
   const target = event.target as HTMLElement
 
-  // Ищем ближайий родительский тег <a>
-  const link = target.closest('a')
+  const hanziPhrase = getHanziFromEvent(event)
 
+  if (hanziPhrase) {
+    hanziTooltipRef.value?.open(event.clientX, event.clientY, hanziPhrase)
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+
+  hanziTooltipRef.value?.close()
+
+  const link = target.closest('a')
   if (link && link.getAttribute('href')?.startsWith('/')) {
     event.preventDefault()
-
     const href = link.getAttribute('href')
-
-    if (href) {
+    if (href)
       navigateTo(href)
-    }
     return
   }
 
@@ -83,14 +93,11 @@ function handleContentClick(event: MouseEvent) {
     const img = target as HTMLImageElement
     if (target.closest('.callout-content') || target.closest('.markdown-body')) {
       event.stopPropagation()
-
       const container = event.currentTarget as HTMLElement
       const allImages = Array.from(container.querySelectorAll('img')) as HTMLImageElement[]
       const imageUrls = allImages.map(el => el.src)
-
       const clickedUrl = img.src
       currentImages.value = [clickedUrl, ...imageUrls.filter(url => url !== clickedUrl)]
-
       openImageViewer()
     }
   }
@@ -99,12 +106,15 @@ function handleContentClick(event: MouseEvent) {
 
 <template>
   <PageLoader v-if="isLoading" />
-  <div
-    v-else
-    class="markdown-body"
-    @click="handleContentClick"
-    v-html="renderedContent"
-  />
+  <div v-else class="markdown-wrapper">
+    <HanziTooltip ref="hanziTooltipRef" />
+
+    <div
+      class="markdown-body"
+      @click="handleContentClick"
+      v-html="renderedContent"
+    />
+  </div>
 </template>
 
 <style lang="scss">
@@ -120,7 +130,6 @@ function handleContentClick(event: MouseEvent) {
   color: var(--fg-primary-color);
   font-size: 1.05rem;
 
-  // --- ЗАГОЛОВКИ ---
   h1,
   h2,
   h3,
@@ -133,13 +142,11 @@ function handleContentClick(event: MouseEvent) {
     line-height: 1.3;
     color: var(--fg-primary-color);
   }
-
   h1 {
     font-size: 2rem;
     border-bottom: 1px solid var(--border-secondary-color);
     padding-bottom: 0.5rem;
   }
-
   h2 {
     font-size: 1.5rem;
     border: none;
@@ -151,7 +158,6 @@ function handleContentClick(event: MouseEvent) {
     align-items: center;
     gap: 10px;
   }
-
   h3 {
     font-size: 1.25rem;
     border: none;
@@ -160,34 +166,28 @@ function handleContentClick(event: MouseEvent) {
     width: fit-content;
     padding-right: 20px;
   }
-
   p {
     margin-bottom: 1.2rem;
   }
-
   strong {
     color: var(--fg-primary-color);
     font-weight: 700;
   }
-
   a {
     color: var(--fg-accent-color);
     font-weight: 500;
     text-decoration: none;
     border-bottom: 1px solid rgba(var(--fg-accent-color-rgb), 0.4);
     transition: all 0.2s ease-in-out;
-
     &:hover {
       background-color: rgba(var(--fg-accent-color-rgb), 0.1);
       border-bottom-color: var(--fg-accent-color);
     }
   }
-
   em {
     color: var(--fg-accent-color);
     font-style: italic;
   }
-
   code:not(pre > code) {
     background-color: rgba(var(--fg-accent-color-rgb), 0.1);
     border: 1px solid rgba(var(--fg-accent-color-rgb), 0.2);
@@ -201,18 +201,15 @@ function handleContentClick(event: MouseEvent) {
     vertical-align: baseline;
     display: inline-block;
   }
-
   .shiki {
     padding: 10px;
     border-radius: 8px;
   }
-
   pre:not(.shiki) {
     background: var(--bg-tertiary-color);
     padding: 1rem;
     border-radius: 8px;
     overflow-x: auto;
-
     code {
       font-family: 'Maple Mono CN', 'JetBrains Mono', monospace;
       background: transparent;
@@ -221,30 +218,23 @@ function handleContentClick(event: MouseEvent) {
       border: none;
     }
   }
-
-  // --- СПИСКИ ---
   ul,
   ol {
     padding-left: 1.5rem;
     margin-bottom: 1.5rem;
-
     > li {
       ul {
         margin: 0;
       }
     }
   }
-
   ul > li {
     list-style-type: disc;
     margin-bottom: 0.5rem;
-
     &::marker {
       color: var(--fg-accent-color);
     }
   }
-
-  // --- ЦИТАТЫ (Blockquote) ---
   blockquote {
     border-left: 4px solid var(--fg-accent-color);
     background-color: var(--bg-secondary-color);
@@ -253,12 +243,10 @@ function handleContentClick(event: MouseEvent) {
     margin: 1.5rem 0;
     font-style: italic;
     color: var(--fg-secondary-color);
-
     p {
       margin: 0;
     }
   }
-
   img {
     border-radius: 8px;
     max-width: 100%;
@@ -266,21 +254,20 @@ function handleContentClick(event: MouseEvent) {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin: 1rem 0;
   }
-
-  table {
+  .table-container {
     display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-
-    border-collapse: collapse;
     margin: 2rem 0;
-    font-size: 0.95rem;
     border-radius: 8px;
-
     box-shadow: 0 0 0 1px var(--border-secondary-color);
   }
-
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
   th {
     background-color: var(--bg-tertiary-color);
     text-align: left;
@@ -288,12 +275,10 @@ function handleContentClick(event: MouseEvent) {
     font-weight: 600;
     border-bottom: 2px solid var(--border-secondary-color);
   }
-
   td {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-secondary-color);
   }
-
   tr:last-child td {
     border-bottom: none;
   }
@@ -301,13 +286,10 @@ function handleContentClick(event: MouseEvent) {
     background-color: var(--bg-hover-color);
   }
 
-  /* --- CALLOUTS (Obsidian Style) --- */
-  // Base Variables
-  --co-bg-opacity: 0.08; // Более прозрачный фон
+  /* Callouts */
+  --co-bg-opacity: 0.08;
   --co-border-width: 4px;
   --co-radius: 8px;
-
-  // Цвета
   --co-note: 68, 138, 255;
   --co-info: 68, 138, 255;
   --co-tip: 0, 191, 165;
@@ -323,11 +305,8 @@ function handleContentClick(event: MouseEvent) {
     border-left: var(--co-border-width) solid rgb(var(--callout-color));
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-
-    // Fallback
     --callout-color: var(--co-note);
   }
-
   .callout-title {
     padding: 12px 16px;
     display: flex;
@@ -339,34 +318,27 @@ function handleContentClick(event: MouseEvent) {
     font-size: 1rem;
     border-bottom: 1px solid rgba(var(--callout-color), 0.1);
   }
-
   .callout-content {
     padding: 16px;
-
     p:empty {
       display: none;
     }
-
     p:has(br:only-child) {
       display: none;
     }
-
     p {
       margin: 8px 0;
     }
-
     p:last-child {
       margin-bottom: 0;
     }
     p:first-child {
       margin-top: 0;
     }
-
     ul {
       margin: 0;
     }
   }
-
   .callout-title-icon {
     display: flex;
     align-items: center;
@@ -375,8 +347,6 @@ function handleContentClick(event: MouseEvent) {
     fill: currentColor;
   }
 }
-
-// Collapsible support
 details.callout {
   & > summary.callout-title {
     cursor: pointer;
@@ -384,20 +354,16 @@ details.callout {
   }
   & > summary.callout-title::-webkit-details-marker {
     display: none;
-
     .callout-fold {
       margin-left: auto;
       transform: rotate(0deg);
       transition: transform 0.2s;
       opacity: 0.7;
     }
-
     &[open] .callout-fold {
       transform: rotate(90deg);
     }
   }
-
-  // Mapping types
   & .callout[data-callout='abstract'],
   & .callout[data-callout='summary'],
   & .callout[data-callout='tldr'] {
@@ -447,45 +413,35 @@ details.callout {
     --callout-color: var(--co-quote);
   }
 }
-</style>
-
-<style lang="scss">
 .hero {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-
   background-color: rgba(115, 233, 144, 0.08);
   border: 1px solid rgba(115, 233, 144, 0.25);
   border-left: 4px solid rgba(142, 175, 151, 0.5);
   border-radius: 12px;
-
   padding: 16px 24px;
   margin: 2rem 0;
   position: relative;
   overflow: hidden;
-
   @include mobile {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 }
-
 .hero .hanzi {
   font-family: 'Maple Mono CN', 'KaiTi', serif;
   font-size: 3.5rem;
   line-height: 1;
   font-weight: 500;
-
   color: #81bb8f;
   opacity: 1;
-
   margin-right: 24px;
   padding-right: 24px;
   border-right: 1px solid rgba(115, 233, 144, 0.3);
   flex-shrink: 0;
-
   @include mobile {
     border-right: none;
     border-bottom: 1px solid rgba(115, 233, 144, 0.3);
@@ -496,14 +452,12 @@ details.callout {
     text-align: center;
   }
 }
-
 .hero .meta {
   display: flex;
   flex-direction: column;
   justify-content: center;
   width: 100%;
 }
-
 .hero .meta h1 {
   margin: 0 !important;
   border: none !important;
@@ -515,7 +469,6 @@ details.callout {
   font-weight: 700;
   display: block;
 }
-
 .hero .meta .pinyin {
   font-size: 1.1rem;
   font-family: 'Maple Mono CN', monospace;
@@ -524,7 +477,6 @@ details.callout {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
-
 .hero .meta .desc {
   font-size: 0.9rem;
   color: var(--fg-secondary-color);

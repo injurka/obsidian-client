@@ -56,6 +56,14 @@ export async function createMarkdownRenderer(params: CreateMarkdownRendererParam
     },
   })
 
+  md.renderer.rules.table_open = (tokens, idx, options, env, self) => {
+    return `<div class="table-container">${self.renderToken(tokens, idx, options)}`
+  }
+
+  md.renderer.rules.table_close = (tokens, idx, options, env, self) => {
+    return `${self.renderToken(tokens, idx, options)}</div>`
+  }
+
   md
     .use(markdownItWikiImages, { baseURL: imageBasePath, defaultAlt: '' })
     .use(markdownItWikiLinks)

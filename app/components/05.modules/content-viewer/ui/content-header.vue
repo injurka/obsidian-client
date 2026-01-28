@@ -80,6 +80,10 @@ const currentVault = computed(() => route.params.vault as string)
 
 <style lang="scss" scoped>
 .content-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -92,11 +96,11 @@ const currentVault = computed(() => route.params.vault as string)
   gap: 16px;
   flex-shrink: 0;
 
-  transition: margin-top 0.3s ease-in-out;
-  will-change: margin-top;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 
   &.is-hidden {
-    margin-top: -50px;
+    transform: translateY(-100%);
   }
 }
 

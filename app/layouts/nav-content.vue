@@ -194,12 +194,14 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
+  position: relative; /* Важно для позиционирования хедера */
 }
 
 .content-scrollable {
   flex: 1;
+  height: 100%; /* Занимает всю высоту родителя, так как хедер теперь absolute */
   overflow-y: auto;
-  padding: 0;
+  padding: 50px 0 0 0; /* Отступ сверху для хедера (50px = height of content-header) */
 
   &.borderless :deep(.content-viewer) {
     width: 100% !important;
