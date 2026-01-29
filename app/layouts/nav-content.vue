@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { ContentNavItem, VaultMetaSettings } from '~/components/05.modules/content-viewer'
+import type { BacklinksMap, ContentNavItem, SearchIndexItem, VaultMetaSettings } from '~/components/05.modules/content-viewer'
 import { useEventListener, useSwipe } from '@vueuse/core'
 import { PageLoader } from '~/components/02.shared/page-loader'
 import { ContentViewerHeader, ContentViewerNavigation, useContentViewerStore } from '~/components/05.modules/content-viewer'
+import SearchModal from '~/components/05.modules/content-viewer/ui/search-modal.vue'
 
 const params = useTypedRouteParams()
 const contentViewerStore = useContentViewerStore()
@@ -10,6 +11,7 @@ const route = useRoute()
 const { cmsUrl } = useRuntimeConfig().public
 
 const menu = ref(true)
+const searchOpen = ref(false)
 const scrollableRef = ref<HTMLElement | null>(null)
 const mainAreaRef = ref<HTMLElement | null>(null)
 const isSwipingOnScrollable = ref(false)
@@ -39,7 +41,6 @@ function handleScroll() {
 
 useSwipe(mainAreaRef, {
   passive: true,
-
   onSwipeStart: (e) => {
     const target = e.target as HTMLElement
     if (target.closest('table')) {
@@ -49,12 +50,9 @@ useSwipe(mainAreaRef, {
       isSwipingOnScrollable.value = false
     }
   },
-
   onSwipeEnd: (_, direction) => {
-    if (isSwipingOnScrollable.value) {
+    if (isSwipingOnScrollable.value)
       return
-    }
-
     if (!menu.value && direction === 'right') {
       menu.value = true
     }
@@ -63,62 +61,52 @@ useSwipe(mainAreaRef, {
 
 useEventListener(scrollableRef, 'scroll', handleScroll)
 
-// --- Загрузка навигации ---
-const { data: navItems, status } = await useAsyncData<ContentNavItem[]>(
-  `nav-${params.value.vault}`,
+// --- Загрузка данных (Nav, Settings, Backlinks) ---
+const { data, status } = await useAsyncData(
+  `vault-data-${params.value.vault}`,
   async () => {
     const vault = params.value.vault
     if (!vault)
-      return []
-    try {
-      const response = await $fetch<any>(`${cmsUrl}/content/${vault}/nav.json`)
-      if (!Array.isArray(response))
-        return []
-      return response
-    }
-    catch (e) {
-      console.warn(`Failed to fetch navigation for ${vault}:`, e)
-      return []
-    }
-  },
-  { watch: [() => params.value.vault] },
-)
+      return { nav: [], settings: null, backlinks: null }
 
-// --- Загрузка настроек Vault (Settings) ---
-const { data: vaultSettings } = await useAsyncData<VaultMetaSettings | null>(
-  `settings-${params.value.vault}`,
-  async () => {
-    const vault = params.value.vault
-    if (!vault)
-      return null
-    try {
-      return await $fetch<VaultMetaSettings>(`${cmsUrl}/meta/${vault}/settings.json`)
-    }
-    catch {
-      // Если файла нет, это нормально
-      return null
-    }
+    const [nav, settings, backlinks, searchIndex] = await Promise.all([
+      // 1. Navigation
+      $fetch<ContentNavItem[]>(`${cmsUrl}/content/${vault}/nav.json`).catch(() => []),
+      // 2. Settings
+      $fetch<VaultMetaSettings>(`${cmsUrl}/meta/${vault}/settings.json`).catch(() => null),
+      // 3. Backlinks
+      $fetch<BacklinksMap>(`${cmsUrl}/meta/${vault}/backlinks.json`).catch(() => null),
+      // 4. Search
+      $fetch<SearchIndexItem[]>(`${cmsUrl}/meta/${vault}/search.json`).catch(() => []),
+    ])
+
+    return { nav, settings, backlinks, searchIndex }
   },
   { watch: [() => params.value.vault] },
 )
 
 // Синхронизация данных со стором
 watchEffect(() => {
-  contentViewerStore.$patch({
-    navItems: navItems.value || [],
-    vaultSettings: vaultSettings.value || null,
-  })
+  if (data.value) {
+    contentViewerStore.$patch({
+      navItems: data.value.nav || [],
+      vaultSettings: data.value.settings || null,
+      backlinks: data.value.backlinks || null,
+      searchIndex: data.value.searchIndex || [],
+    })
+  }
 })
 
 // Применение настроек (Скрипты и Стили) в <head>
 useHead(() => {
-  if (!vaultSettings.value)
+  const settings = data.value?.settings
+  if (!settings)
     return {}
 
   const vault = params.value.vault
   const vaultBaseUrl = `${cmsUrl}/meta/${vault}/`
 
-  const scripts = (vaultSettings.value.scripts || []).map((src) => {
+  const scripts = (settings.scripts || []).map((src) => {
     const isAbsolute = src.startsWith('http') || src.startsWith('//')
     return {
       src: isAbsolute ? src : `${vaultBaseUrl}${src}`,
@@ -127,7 +115,7 @@ useHead(() => {
     }
   })
 
-  const styles = (vaultSettings.value.styles || []).map((href) => {
+  const styles = (settings.styles || []).map((href) => {
     const isAbsolute = href.startsWith('http') || href.startsWith('//')
     return {
       rel: 'stylesheet',
@@ -136,33 +124,28 @@ useHead(() => {
     }
   })
 
-  return {
-    script: scripts,
-    link: styles,
-  }
+  return { script: scripts, link: styles }
 })
 
-watch(
-  () => route.path,
-  () => {
-    if (scrollableRef.value) {
-      scrollableRef.value.scrollTo({ top: 0, behavior: 'instant' })
-    }
-  },
-)
+watch(() => route.path, () => {
+  if (scrollableRef.value) {
+    scrollableRef.value.scrollTo({ top: 0, behavior: 'instant' })
+  }
+})
 </script>
 
 <template>
   <div class="layout-container">
     <PageLoader v-if="status === 'pending'" />
     <div v-else class="layout-content">
-      <ContentViewerNavigation v-model:menu="menu" :items="navItems ?? []" />
+      <ContentViewerNavigation v-model:menu="menu" :items="data?.nav ?? []" />
 
       <main ref="mainAreaRef" class="main-area">
         <ContentViewerHeader
           :menu="menu"
           :visible="isHeaderVisible"
           @update:menu="menu = $event"
+          @open-search="searchOpen = true"
         />
         <div
           ref="scrollableRef"
@@ -172,6 +155,8 @@ watch(
           <slot />
         </div>
       </main>
+
+      <SearchModal v-model="searchOpen" />
     </div>
   </div>
 </template>
@@ -194,14 +179,14 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  position: relative; /* Важно для позиционирования хедера */
+  position: relative;
 }
 
 .content-scrollable {
   flex: 1;
-  height: 100%; /* Занимает всю высоту родителя, так как хедер теперь absolute */
+  height: 100%;
   overflow-y: auto;
-  padding: 50px 0 0 0; /* Отступ сверху для хедера (50px = height of content-header) */
+  padding: 50px 0 0 0;
 
   &.borderless :deep(.content-viewer) {
     width: 100% !important;

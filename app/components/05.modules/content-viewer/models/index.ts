@@ -3,11 +3,18 @@ enum ContentNavItemType {
   Directory = 'directory',
 }
 
+interface FileMetaData {
+  words: number
+  readingTime: number // в минутах
+  lastModified: string // ISO date
+}
+
 interface ContentNavItem {
   sysname: string
   title: string
   type: ContentNavItemType
   children?: ContentNavItem[]
+  meta?: FileMetaData
 }
 
 interface VaultMetaSettings {
@@ -16,5 +23,20 @@ interface VaultMetaSettings {
   [key: string]: any
 }
 
+// --- Backlinks ---
+interface BacklinkItem {
+  title: string
+  url: string
+}
+
+type BacklinksMap = Record<string, BacklinkItem[]>
+
+interface SearchIndexItem {
+  id: string
+  title: string
+  url: string
+  content: string
+}
+
 export { ContentNavItemType }
-export type { ContentNavItem, VaultMetaSettings }
+export type { BacklinkItem, BacklinksMap, ContentNavItem, FileMetaData, SearchIndexItem, VaultMetaSettings }

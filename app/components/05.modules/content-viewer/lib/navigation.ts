@@ -1,4 +1,5 @@
-import { type ContentNavItem, ContentNavItemType } from '../models'
+import type { ContentNavItem } from '../models'
+import { ContentNavItemType } from '../models'
 
 /**
  * Преобразует дерево навигации в плоский список файлов с полными путями.
@@ -42,5 +43,32 @@ export function findPathBySysname(
         return childPath
     }
   }
+  return null
+}
+
+/**
+ * Ищет элемент навигации (файл или папку) по массиву сегментов пути (из URL).
+ */
+export function findItemByPath(
+  items: ContentNavItem[],
+  pathSegments: string[],
+): ContentNavItem | null {
+  if (!items || pathSegments.length === 0)
+    return null
+
+  const [currentSegment, ...remainingSegments] = pathSegments
+  const item = items.find(i => i.sysname === currentSegment)
+
+  if (!item)
+    return null
+
+  // Если это последний сегмент пути, мы нашли элемент
+  if (remainingSegments.length === 0)
+    return item
+
+  // Если есть еще сегменты, ищем в детях
+  if (item.children)
+    return findItemByPath(item.children, remainingSegments)
+
   return null
 }

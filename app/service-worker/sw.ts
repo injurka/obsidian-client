@@ -138,7 +138,7 @@ self.addEventListener('message', async (event) => {
     return
 
   const { type, payload } = event.data as ServiceWorkerMessage
-  const port = event.ports[0]
+  const port = event.ports[0]!
   const handler = messageHandlers[type]
 
   if (handler) {

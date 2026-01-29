@@ -8,7 +8,10 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['update:menu'])
+const emit = defineEmits<{
+  (e: 'update:menu', value: boolean): void
+  (e: 'open-search'): void
+}>()
 
 const breadcrumbsTrackRef = ref<HTMLElement | null>(null)
 const route = useRoute()
@@ -17,12 +20,12 @@ const breadcrumbs = computed(() => {
   const vault = route.params.vault as string
   const pwd = (Array.isArray(route.params.pwd) ? route.params.pwd : [route.params.pwd].filter(Boolean)) as string[]
 
-  if (!pwd.length) {
-    return [{ title: vault, to: `/${vault}`, disabled: true }]
-  }
-
   let currentPath = `/${vault}`
-  const items = [{ title: vault, to: currentPath, disabled: false }]
+  const items = [] as {
+    title: string
+    to: string
+    disabled: boolean
+  }[]
 
   pwd.forEach((segment, index) => {
     currentPath += `/${segment}`
@@ -65,7 +68,8 @@ const currentVault = computed(() => route.params.vault as string)
               class="breadcrumb-item"
               :class="{ 'is-active': item.disabled }"
             >
-              {{ item.title }}
+
+              <span>{{ item.title }}</span>
             </span>
           </template>
         </div>
@@ -73,6 +77,14 @@ const currentVault = computed(() => route.params.vault as string)
     </div>
 
     <div class="header-right flex-shrink-0">
+      <KitBtn
+        variant="text"
+        size="sm"
+        icon="mdi:magnify"
+        title="Поиск (Ctrl+K)"
+        @click="emit('open-search')"
+      />
+
       <ViewerSettingsMenu :vault="currentVault" />
     </div>
   </header>
@@ -116,6 +128,7 @@ const currentVault = computed(() => route.params.vault as string)
 .header-right {
   display: flex;
   align-items: center;
+  gap: 4px;
 }
 
 .flex-shrink-0 {
@@ -159,22 +172,25 @@ const currentVault = computed(() => route.params.vault as string)
   border-radius: 6px;
   font-size: 0.85rem;
   color: var(--fg-secondary-color);
-  text-decoration: none;
   background-color: transparent;
   transition: all 0.2s ease;
   font-weight: 500;
   flex-shrink: 0;
-
-  &:hover:not(.is-active) {
-    background-color: var(--bg-hover-color);
-    color: var(--fg-primary-color);
-  }
 
   &.is-active {
     background-color: var(--bg-secondary-color);
     color: var(--fg-primary-color);
     pointer-events: none;
     border: 1px solid var(--border-secondary-color);
+  }
+}
+
+.breadcrumb-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--fg-primary-color);
   }
 }
 

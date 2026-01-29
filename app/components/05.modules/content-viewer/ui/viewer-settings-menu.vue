@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
 import { KitBtn, KitCheckbox, KitDropdown } from '~/components/01.kit'
-import { ThemesVariant, useChangeTheme } from '~/shared/composables/use-change-theme'
-import { useContentViewerStore } from '../store'
-import { flattenNavItems } from '../lib/navigation'
 import { CACHE_CONFIG } from '~/service-worker/model/types'
+import { ThemesVariant, useChangeTheme } from '~/shared/composables/use-change-theme'
+import { flattenNavItems } from '../lib/navigation'
+import { useContentViewerStore } from '../store'
 
 const props = defineProps<{
   vault: string
@@ -16,8 +16,8 @@ const contentViewerStore = useContentViewerStore()
 const { cmsUrl } = useRuntimeConfig().public
 
 // --- Theme Logic ---
-const currentThemeIcon = computed(() => 
-  theme.value === ThemesVariant.Light ? 'mdi:weather-sunny' : 'mdi:weather-night'
+const currentThemeIcon = computed(() =>
+  theme.value === ThemesVariant.Light ? 'mdi:weather-sunny' : 'mdi:weather-night',
 )
 
 function toggleTheme() {
@@ -31,14 +31,16 @@ const totalFilesToCache = ref(0)
 
 async function handleForceRefresh() {
   try {
-    if ($pwa?.needRefresh) await $pwa.updateServiceWorker()
-    
+    if ($pwa?.needRefresh)
+      await $pwa.updateServiceWorker()
+
     if ('caches' in window) {
       await caches.delete(CACHE_CONFIG.names.contentFiles)
       await caches.delete(CACHE_CONFIG.names.contentImages)
       window.location.reload()
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 }
@@ -50,20 +52,22 @@ function encodePath(path: string): string {
 }
 
 async function handleCacheVault() {
-  if (isCaching.value || !contentViewerStore.navItems) return
+  if (isCaching.value || !contentViewerStore.navItems)
+    return
 
   // Проверяем поддержку Cache API
   if (!('caches' in window)) {
+    // eslint-disable-next-line no-alert
     alert('Ваш браузер не поддерживает кеширование для офлайна.')
     return
   }
 
   isCaching.value = true
   cacheProgress.value = 0
-  
+
   const allFiles = flattenNavItems(contentViewerStore.navItems)
   totalFilesToCache.value = allFiles.length
-  
+
   if (totalFilesToCache.value === 0) {
     isCaching.value = false
     return
@@ -80,11 +84,13 @@ async function handleCacheVault() {
         try {
           const encodedPath = encodePath(file.path)
           const url = `${cmsUrl}/content/${props.vault}/${encodedPath}.md`
-          
+
           await cache.add(url)
-        } catch (e) {
+        }
+        catch (e) {
           console.warn(`Failed to cache: ${file.path}`, e)
-        } finally {
+        }
+        finally {
           loaded++
           cacheProgress.value = Math.floor((loaded / totalFilesToCache.value) * 100)
         }
@@ -95,9 +101,11 @@ async function handleCacheVault() {
     for (let i = 0; i < allFiles.length; i += batchSize) {
       await processBatch(allFiles.slice(i, i + batchSize))
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Global cache error:', error)
-  } finally {
+  }
+  finally {
     setTimeout(() => {
       isCaching.value = false
       cacheProgress.value = 0
@@ -115,8 +123,10 @@ async function handleCacheVault() {
     <div class="menu-content">
       <!-- Секция: Внешний вид -->
       <div class="menu-section">
-        <div class="section-title">Внешний вид</div>
-        
+        <div class="section-title">
+          Внешний вид
+        </div>
+
         <div class="menu-item" @click="toggleTheme">
           <div class="item-label">
             <Icon :icon="currentThemeIcon" class="item-icon" />
@@ -126,7 +136,7 @@ async function handleCacheVault() {
         </div>
 
         <div class="divider" />
-        
+
         <div class="settings-group">
           <KitCheckbox v-model="contentViewerStore.borderlessViewEnabled" label="Широкий просмотр" />
           <KitCheckbox v-model="contentViewerStore.coloredFoldersEnabled" label="Цветные папки" />
@@ -137,11 +147,13 @@ async function handleCacheVault() {
 
       <!-- Секция: Данные -->
       <div class="menu-section">
-        <div class="section-title">Данные и хранилище</div>
+        <div class="section-title">
+          Данные и хранилище
+        </div>
 
-        <KitBtn 
-          variant="text" 
-          class="menu-action-btn" 
+        <KitBtn
+          variant="text"
+          class="menu-action-btn"
           @click="handleForceRefresh"
         >
           <Icon icon="mdi:cloud-refresh" class="btn-icon" />
@@ -149,8 +161,8 @@ async function handleCacheVault() {
         </KitBtn>
 
         <div class="cache-control">
-          <KitBtn 
-            variant="tonal" 
+          <KitBtn
+            variant="tonal"
             color="primary"
             class="menu-action-btn"
             :disabled="isCaching"
@@ -159,11 +171,13 @@ async function handleCacheVault() {
             <Icon :icon="isCaching ? 'svg-spinners:ring-resize' : 'mdi:folder-download'" class="btn-icon" />
             <span>{{ isCaching ? `Загрузка ${cacheProgress}%` : 'Скачать всё хранилище' }}</span>
           </KitBtn>
-          
+
           <div v-if="isCaching" class="progress-bar">
             <div class="progress-fill" :style="{ width: `${cacheProgress}%` }" />
           </div>
-          <p class="hint-text">Сохраняет все файлы текущего раздела для доступа без интернета.</p>
+          <p class="hint-text">
+            Сохраняет все файлы текущего раздела для доступа без интернета.
+          </p>
         </div>
       </div>
 
@@ -180,12 +194,11 @@ async function handleCacheVault() {
 </template>
 
 <style lang="scss" scoped>
-/* Стили остаются без изменений */
 .menu-content {
   padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
 }
 
 .menu-section {
@@ -198,8 +211,10 @@ async function handleCacheVault() {
     border-radius: 6px;
     padding: 4px;
     margin-top: 4px;
-    
-    .warning { color: var(--fg-warning-color); }
+
+    .warning {
+      color: var(--fg-warning-color);
+    }
   }
 }
 
@@ -263,7 +278,7 @@ async function handleCacheVault() {
   width: 100%;
   padding-left: 8px;
   font-weight: 500;
-  
+
   .btn-icon {
     margin-right: 8px;
     font-size: 1.1rem;

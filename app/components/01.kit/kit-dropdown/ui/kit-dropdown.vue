@@ -125,7 +125,7 @@ defineExpose({ close: () => isOpen.value = false, open: () => isOpen.value = tru
 }
 
 .dropdown-menu-inner {
-  background-color: rgba(var(--bg-tertiary-color-rgb), 0.85);
+  background-color: rgba(var(--bg-tertiary-color-rgb), 1);
   backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(var(--border-primary-color-rgb, 48, 54, 61), 0.4);
   border-radius: 12px;
