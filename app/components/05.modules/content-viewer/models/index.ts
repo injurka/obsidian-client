@@ -23,7 +23,6 @@ interface VaultMetaSettings {
   [key: string]: any
 }
 
-// --- Backlinks ---
 interface BacklinkItem {
   title: string
   url: string
@@ -36,6 +35,7 @@ interface SearchIndexItem {
   title: string
   url: string
   content: string
+  tags?: string[]
 }
 
 export { ContentNavItemType }
