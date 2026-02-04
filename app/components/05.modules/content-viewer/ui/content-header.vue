@@ -3,18 +3,20 @@ import { Icon } from '@iconify/vue'
 import { KitBtn } from '~/components/01.kit'
 import ViewerSettingsMenu from './viewer-settings-menu.vue'
 
-const props = defineProps<{
-  menu: boolean
+interface Props {
   visible: boolean
-}>()
+}
+
+defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: 'update:menu', value: boolean): void
-  (e: 'open-search'): void
+  (e: 'openSearch'): void
 }>()
+const menu = defineModel('menu', { required: true })
+
+const route = useRoute()
 
 const breadcrumbsTrackRef = ref<HTMLElement | null>(null)
-const route = useRoute()
 
 const breadcrumbs = computed(() => {
   const vault = route.params.vault as string
@@ -55,9 +57,9 @@ const currentVault = computed(() => route.params.vault as string)
       <KitBtn
         variant="text"
         size="sm"
-        :icon="props.menu ? 'mdi:arrow-left' : 'mdi:menu'"
+        :icon="menu ? 'mdi:arrow-left' : 'mdi:menu'"
         class="menu-btn flex-shrink-0"
-        @click="emit('update:menu', !props.menu)"
+        @click="menu = !menu"
       />
 
       <nav class="breadcrumbs">
@@ -82,7 +84,7 @@ const currentVault = computed(() => route.params.vault as string)
         size="sm"
         icon="mdi:magnify"
         title="Поиск (Ctrl+K)"
-        @click="emit('open-search')"
+        @click="emit('openSearch')"
       />
 
       <ViewerSettingsMenu :vault="currentVault" />

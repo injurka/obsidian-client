@@ -6,9 +6,11 @@ import { ThemesVariant, useChangeTheme } from '~/shared/composables/use-change-t
 import { flattenNavItems } from '../lib/navigation'
 import { useContentViewerStore } from '../store'
 
-const props = defineProps<{
+interface Props {
   vault: string
-}>()
+}
+
+const props = defineProps<Props>()
 
 const { $pwa } = useNuxtApp()
 const { setTheme, theme } = useChangeTheme()

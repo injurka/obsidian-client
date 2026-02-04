@@ -78,7 +78,9 @@ const filteredResults = computed(() => {
     return baseResults.filter(({ item }) => {
       if (!item.tags)
         return false
+
       const itemTags = new Set(item.tags.map(t => t.replace(/^#/, '')))
+
       return Array.from(selectedTags.value).every(t => itemTags.has(t))
     })
   }
@@ -100,7 +102,9 @@ function navigate(url: string) {
 onKeyStroke('ArrowDown', (e) => {
   if (!modelValue.value)
     return
+
   e.preventDefault()
+
   if (activeIndex.value < filteredResults.value.length - 1) {
     activeIndex.value++
     document.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' })
@@ -110,7 +114,9 @@ onKeyStroke('ArrowDown', (e) => {
 onKeyStroke('ArrowUp', (e) => {
   if (!modelValue.value)
     return
+
   e.preventDefault()
+
   if (activeIndex.value > 0) {
     activeIndex.value--
     document.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' })
@@ -120,8 +126,11 @@ onKeyStroke('ArrowUp', (e) => {
 onKeyStroke('Enter', (e) => {
   if (!modelValue.value || filteredResults.value.length === 0)
     return
+
   e.preventDefault()
+
   const result = filteredResults.value[activeIndex.value]
+
   if (result) {
     navigate(result.item.url)
   }
@@ -214,7 +223,7 @@ function getHighlightedSnippet(result: FuseResult<SearchIndexItem>): string {
               </div>
               <div
                 class="result-snippet"
-                v-html="getHighlightedSnippet(result)"
+                v-html="getHighlightedSnippet(result as any)"
               />
             </div>
 

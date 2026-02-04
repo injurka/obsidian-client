@@ -9,6 +9,7 @@ withDefaults(defineProps<Props>(), {
   placeholder: '',
   variant: 'default',
 })
+
 const emit = defineEmits(['update:modelValue'])
 
 function onInput(e: Event) {

@@ -60,7 +60,7 @@ export const useContentViewerStore = defineStore('contentViewer', () => {
     vaultSettings,
     backlinks,
     activeItem,
-    currentBacklinks, 
+    currentBacklinks,
     searchIndex,
     borderlessViewEnabled,
     coloredFoldersEnabled,

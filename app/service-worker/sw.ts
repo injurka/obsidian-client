@@ -70,10 +70,14 @@ API_RULES.forEach((rule) => {
   const opts = { maxEntries: rule.maxEntries, maxAgeSeconds: rule.maxAgeSeconds, statuses: rule.statuses }
 
   switch (rule.strategy) {
-    case 'CacheFirst': strategy = CacheStrategyFactory.createCacheFirst(rule.cacheName, opts); break
-    case 'NetworkFirst': strategy = CacheStrategyFactory.createNetworkFirst(rule.cacheName, opts); break
-    case 'StaleWhileRevalidate': strategy = CacheStrategyFactory.createStaleWhileRevalidate(rule.cacheName, opts); break
-    case 'NetworkOnly': strategy = CacheStrategyFactory.createNetworkOnly(); break
+    case 'CacheFirst': strategy = CacheStrategyFactory.createCacheFirst(rule.cacheName, opts)
+      break
+    case 'NetworkFirst': strategy = CacheStrategyFactory.createNetworkFirst(rule.cacheName, opts)
+      break
+    case 'StaleWhileRevalidate': strategy = CacheStrategyFactory.createStaleWhileRevalidate(rule.cacheName, opts)
+      break
+    case 'NetworkOnly': strategy = CacheStrategyFactory.createNetworkOnly()
+      break
   }
 
   if (strategy) {

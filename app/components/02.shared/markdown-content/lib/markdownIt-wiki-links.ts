@@ -12,6 +12,7 @@ function markdownItWikiLinks(md: MarkdownIt) {
     //    Это позволяет обработать ссылки вида "/path/to/file (comment)"
     // 4. \) -> закрывающая скобка всей ссылки
 
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     src = src.replace(/\[([^\]]+)\]\(\s*\/\s*((?:[^()]|\([^()]*\))*)\)/g, (match, text, path) => {
       const cleanPath = path.trim()
       return `<a href="/${cleanPath}">${text}</a>`

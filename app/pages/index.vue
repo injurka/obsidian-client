@@ -10,15 +10,14 @@ interface NavItem {
 }
 
 const { cmsUrl } = useRuntimeConfig().public
-const { data: navData } = await useAsyncData<NavItem[]>('nav-root', () =>
-  $fetch(`${cmsUrl}/content/nav.json`),
-)
+// @ts-expect-error я не понимаю
+const { data: navData } = await useAsyncData<NavItem[]>('nav-root', () => $fetch(`${cmsUrl}/content/nav.json`))
 </script>
 
 <template>
   <div class="landing-page">
     <!-- Фон: Сетка -->
-    <interactive-grid-pattern
+    <InteractiveGridPattern
       class="background-pattern"
       :width="60"
       :height="60"
@@ -53,13 +52,13 @@ const { data: navData } = await useAsyncData<NavItem[]>('nav-root', () =>
               {{ item.description }}
             </p>
           </div>
-          
+
           <div class="card-footer">
             <span class="learn-more">Перейти</span>
-            <KitBtn 
-              variant="tonal" 
-              icon="mdi:arrow-right" 
-              size="sm" 
+            <KitBtn
+              variant="tonal"
+              icon="mdi:arrow-right"
+              size="sm"
               class="action-btn"
             />
           </div>
@@ -155,7 +154,7 @@ const { data: navData } = await useAsyncData<NavItem[]>('nav-root', () =>
       transform: scale(1.1) rotate(5deg);
       background-color: var(--bg-tertiary-color);
     }
-    
+
     .action-btn {
       background-color: var(--fg-accent-color);
       color: var(--bg-primary-color);
@@ -181,7 +180,9 @@ const { data: navData } = await useAsyncData<NavItem[]>('nav-root', () =>
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  transition: transform 0.3s ease, background-color 0.3s;
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s;
 }
 
 .card-icon {

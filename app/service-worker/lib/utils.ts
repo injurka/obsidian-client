@@ -58,8 +58,11 @@ export class CacheStrategyFactory {
     if (import.meta.env.DEV) {
       plugins.push({
         cachedResponseWillBeUsed: async ({ cachedResponse }) => {
-          if (cachedResponse)
+          if (cachedResponse) {
+            // eslint-disable-next-line no-console
             console.log(`[SW-HIT] ${cacheName}`)
+          }
+
           return cachedResponse
         },
       })

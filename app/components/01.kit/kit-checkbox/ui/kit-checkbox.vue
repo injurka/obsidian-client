@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-const props = defineProps<{
-  modelValue: boolean
+interface Props {
   label?: string
-}>()
+}
 
-const emit = defineEmits(['update:modelValue'])
+defineProps<Props>()
+const model = defineModel()
 
 function toggle() {
-  emit('update:modelValue', !props.modelValue)
+  model.value = !model.value
 }
 </script>
 

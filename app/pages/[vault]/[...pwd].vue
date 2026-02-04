@@ -11,14 +11,14 @@ const { data: contentData, status } = useAsyncData(
   () => `content-${params.value.vault}-${params.value.pwd.join('/')}`,
   () => {
     const path = params.value.pwd.map(segment => encodeURIComponent(segment)).join('/')
-    
+
     return $fetch<string>(
       `${cmsUrl}/content/${params.value.vault}/${path}.md`,
       { responseType: 'text' },
     )
   },
   {
-    watch: [params], 
+    watch: [params],
   },
 )
 
@@ -58,9 +58,19 @@ definePageMeta({
 </template>
 
 <style scoped>
-.page-wrapper { width: 100%; }
-.loading-state { text-align: center; padding: 40px; color: var(--fg-muted-color); }
-.empty-state { padding: 40px; display: flex; justify-content: center; }
+.page-wrapper {
+  width: 100%;
+}
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--fg-muted-color);
+}
+.empty-state {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+}
 .alert {
   background: var(--bg-secondary-color);
   padding: 20px;

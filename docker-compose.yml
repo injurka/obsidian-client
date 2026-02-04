@@ -2,7 +2,7 @@ services:
   app:
     image: injurka/md-client:v1
     ports:
-      - "5555:3000"
+      - '5555:3000'
     volumes:
       - /root/sources/md-client/data:/app/data
     environment:
