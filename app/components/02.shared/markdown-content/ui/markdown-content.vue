@@ -169,6 +169,9 @@ function handleContentClick(event: MouseEvent) {
   p {
     margin-bottom: 1.2rem;
   }
+  p + ul {
+    padding-top: 0;
+  }
   strong {
     color: var(--fg-primary-color);
     font-weight: 700;

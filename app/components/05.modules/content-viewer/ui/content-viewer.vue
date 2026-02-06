@@ -113,6 +113,7 @@ function getMinString(n: number) {
     gap: 12px;
     font-size: 0.8rem;
     margin-bottom: 16px;
+    padding-bottom: 8px;
   }
 }
 </style>
